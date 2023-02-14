@@ -39,3 +39,9 @@ variable "nodes_max_count" {
   type    = number
   default = 2
 }
+
+variable "registry_project_ids" {
+  type        = list(string)
+  description = "Projects holding Artifact Registries"
+  default     = []
+}

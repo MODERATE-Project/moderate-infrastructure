@@ -29,10 +29,11 @@ provider "google" {
 }
 
 module "gke_cluster" {
-  source     = "../modules/gke_cluster"
-  project_id = var.project_id
-  region     = var.region
-  zones      = var.zones
+  source               = "../modules/gke_cluster"
+  project_id           = var.project_id
+  region               = var.region
+  zones                = var.zones
+  registry_project_ids = [var.project_id_common]
 }
 
 data "google_client_config" "default" {}

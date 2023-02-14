@@ -3,6 +3,11 @@ variable "project_id" {
   description = "Globally unique identifier for this project in Google Cloud"
 }
 
+variable "project_id_common" {
+  type        = string
+  description = "Identifier of the project for common resources (e.g. Artifact Registry)"
+}
+
 variable "region" {
   type        = string
   description = "Google Cloud Compute Engine region"

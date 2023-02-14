@@ -18,6 +18,8 @@ module "gke" {
   enable_private_endpoint    = false
   enable_private_nodes       = true
   remove_default_node_pool   = true
+  grant_registry_access      = true
+  registry_project_ids       = var.registry_project_ids
 
   node_pools = [
     {
@@ -42,6 +44,7 @@ module "gke" {
     all = [
       "https://www.googleapis.com/auth/logging.write",
       "https://www.googleapis.com/auth/monitoring",
+      "https://www.googleapis.com/auth/cloud-platform"
     ]
   }
 
