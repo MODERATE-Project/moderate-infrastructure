@@ -32,7 +32,7 @@ variable "nodes_machine_type" {
 
 variable "nodes_min_count" {
   type    = number
-  default = 0
+  default = 1
 }
 
 variable "nodes_max_count" {
