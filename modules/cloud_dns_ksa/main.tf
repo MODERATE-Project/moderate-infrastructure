@@ -4,7 +4,7 @@
 resource "kubernetes_service_account" "ksa_dns_solver" {
   metadata {
     name      = "ksa-dns01-solver"
-    namespace = kubernetes_namespace.cert_manager.id
+    namespace = var.namespace
   }
 }
 

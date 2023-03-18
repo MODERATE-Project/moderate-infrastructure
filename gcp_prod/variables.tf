@@ -25,3 +25,8 @@ variable "zones" {
   description = "Available zones within the Google Cloud region"
   default     = ["europe-west1-b", "europe-west1-c", "europe-west1-d"]
 }
+
+variable "domain_docs" {
+  type        = string
+  description = "Public DNS domain of the MODERATE documentation site"
+}

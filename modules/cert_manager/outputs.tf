@@ -13,7 +13,3 @@ output "cluster_issuer_prod_name" {
 output "cluster_issuer_prod_secret_name" {
   value = local.issuer_secret_prod
 }
-
-output "gsa_dns_solver_email" {
-  value = google_service_account.gsa_dns_solver.email
-}

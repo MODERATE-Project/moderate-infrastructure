@@ -73,12 +73,12 @@ module "nginx_controller_gke" {
 }
 
 module "cert_manager" {
-  source                 = "../modules/cert_manager"
-  cluster_admin_account  = local.cluster_admin_email
-  gke_cluster_project_id = local.gke_project_id
-  cloud_dns_project_id   = var.project_id_common
+  source                = "../modules/cert_manager"
+  cluster_admin_account = local.cluster_admin_email
 }
 
 module "docs_app" {
-  source = "../modules/docs_app"
+  source              = "../modules/docs_app"
+  domain              = var.domain_docs
+  cert_manager_issuer = module.cert_manager.cluster_issuer_prod_name
 }

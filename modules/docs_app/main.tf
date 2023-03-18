@@ -1,35 +1,35 @@
 resource "kubernetes_namespace" "docs" {
+  count = var.namespace == null ? 1 : 0
   metadata {
-    annotations = {
-      name = "docs"
-    }
-    name = "docs"
+    annotations = { name = "docs" }
+    name        = "docs"
   }
 }
 
 locals {
-  docs_app_name = "docs-app"
+  app_name  = "docs-app"
+  namespace = var.namespace == null ? one(kubernetes_namespace.docs[*].id) : var.namespace
 }
 
 resource "kubernetes_deployment" "docs" {
   metadata {
     name      = "docs-deployment"
-    namespace = kubernetes_namespace.docs.metadata[0].name
+    namespace = local.namespace
     labels = {
-      app = local.docs_app_name
+      app = local.app_name
     }
   }
   spec {
     replicas = 2
     selector {
       match_labels = {
-        app = local.docs_app_name
+        app = local.app_name
       }
     }
     template {
       metadata {
         labels = {
-          app = local.docs_app_name
+          app = local.app_name
         }
       }
       spec {
@@ -54,7 +54,7 @@ resource "kubernetes_deployment" "docs" {
 resource "kubernetes_service" "docs" {
   metadata {
     name      = "docs-service"
-    namespace = kubernetes_namespace.docs.metadata[0].name
+    namespace = local.namespace
   }
   spec {
     selector = {
@@ -64,7 +64,46 @@ resource "kubernetes_service" "docs" {
       port        = 8080
       target_port = 80
     }
-    type = "LoadBalancer"
+    type = "NodePort"
   }
 }
 
+
+resource "kubernetes_ingress_v1" "hello" {
+  metadata {
+    name      = "docs-ingress"
+    namespace = local.namespace
+
+    annotations = {
+      "kubernetes.io/ingress.class"    = "nginx"
+      "cert-manager.io/cluster-issuer" = var.cert_manager_issuer
+    }
+  }
+
+  spec {
+    tls {
+      secret_name = "docs-ingress-tls-secret"
+      hosts       = [var.domain]
+    }
+
+    rule {
+      host = var.domain
+
+      http {
+        path {
+          backend {
+            service {
+              name = kubernetes_service.docs.metadata[0].name
+              port {
+                number = 8080
+              }
+            }
+          }
+
+          path      = "/"
+          path_type = "Prefix"
+        }
+      }
+    }
+  }
+}
