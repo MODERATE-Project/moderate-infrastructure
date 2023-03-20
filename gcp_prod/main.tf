@@ -33,6 +33,10 @@ provider "google" {
   zone    = var.zone_default
 }
 
+data "google_client_config" "default" {}
+
+data "google_client_openid_userinfo" "provider_identity" {}
+
 module "gke_cluster" {
   source               = "../modules/gke_cluster"
   project_id           = local.gke_project_id
@@ -40,10 +44,6 @@ module "gke_cluster" {
   zones                = var.zones
   registry_project_ids = [var.project_id_common]
 }
-
-data "google_client_config" "default" {}
-
-data "google_client_openid_userinfo" "provider_identity" {}
 
 provider "kubernetes" {
   host                   = module.gke_cluster.kubernetes_host
@@ -73,8 +73,10 @@ module "nginx_controller_gke" {
 }
 
 module "cert_manager" {
-  source                = "../modules/cert_manager"
-  cluster_admin_account = local.cluster_admin_email
+  source                      = "../modules/cert_manager"
+  cluster_admin_account       = local.cluster_admin_email
+  kube_host                   = module.gke_cluster.kubernetes_host
+  kube_cluster_ca_certificate = module.gke_cluster.kubernetes_cluster_ca_cert
 }
 
 module "docs_app" {
@@ -82,3 +84,16 @@ module "docs_app" {
   domain              = var.domain_docs
   cert_manager_issuer = module.cert_manager.cluster_issuer_prod_name
 }
+
+# module "postgres_cloud_sql" {
+#   source     = "../modules/postgres_cloud_sql"
+#   project_id = var.project_id
+#   region     = var.region
+# }
+
+# module "yatai" {
+#   source                            = "../modules/yatai"
+#   project_id                        = var.project_id
+#   region                            = var.region
+#   google_sql_database_instance_name = module.postgres_cloud_sql.name
+# }

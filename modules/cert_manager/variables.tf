@@ -12,3 +12,12 @@ variable "cluster_admin_account" {
   type        = string
   description = "Google Cloud account as reported by 'gcloud config get-value account'"
 }
+
+variable "kube_host" {
+  type = string
+}
+
+variable "kube_cluster_ca_certificate" {
+  type      = string
+  sensitive = true
+}
