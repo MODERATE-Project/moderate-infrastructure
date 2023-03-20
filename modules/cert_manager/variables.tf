@@ -1,6 +1,6 @@
 variable "after_install_crds_sleep" {
   type    = string
-  default = "30s"
+  default = "90s"
 }
 
 variable "cert_manager_chart_version" {
