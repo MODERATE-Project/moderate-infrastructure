@@ -85,15 +85,19 @@ module "docs_app" {
   cert_manager_issuer = module.cert_manager.cluster_issuer_prod_name
 }
 
-# module "postgres_cloud_sql" {
-#   source     = "../modules/postgres_cloud_sql"
-#   project_id = var.project_id
-#   region     = var.region
-# }
+module "postgres_cloud_sql" {
+  source             = "../modules/postgres_cloud_sql"
+  project_id         = var.project_id
+  region             = var.region
+  cluster_network_id = module.gke_cluster.cluster_network_id
+}
 
-# module "yatai" {
-#   source                            = "../modules/yatai"
-#   project_id                        = var.project_id
-#   region                            = var.region
-#   google_sql_database_instance_name = module.postgres_cloud_sql.name
-# }
+module "yatai" {
+  source                            = "../modules/yatai"
+  project_id                        = var.project_id
+  region                            = var.region
+  google_sql_database_instance_name = module.postgres_cloud_sql.sql_instance_name
+  postgres_host                     = module.postgres_cloud_sql.cloud_sql_proxy_service
+  cert_manager_issuer               = module.cert_manager.cluster_issuer_prod_name
+  domain                            = var.domain_yatai
+}

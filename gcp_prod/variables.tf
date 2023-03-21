@@ -30,3 +30,8 @@ variable "domain_docs" {
   type        = string
   description = "Public DNS domain of the MODERATE documentation site"
 }
+
+variable "domain_yatai" {
+  type        = string
+  description = "Public DNS domain of the Yatai web application"
+}
