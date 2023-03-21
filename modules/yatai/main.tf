@@ -58,50 +58,6 @@ locals {
   yatai_wait_duration = "20s"
 }
 
-resource "helm_release" "yatai_deployment_crds" {
-  name       = "yatai-deployment-crds"
-  repository = "https://bentoml.github.io/helm-charts"
-  chart      = "yatai-deployment-crds"
-  version    = "1.1.7"
-  namespace  = local.namespace
-}
-
-resource "time_sleep" "wait_yatai_deployment_crds" {
-  depends_on      = [helm_release.yatai_deployment_crds]
-  create_duration = local.yatai_wait_duration
-}
-
-locals {
-  yatai_deployment_config = {
-    "layers" = {
-      "network" = {
-        "ingressClass" = "nginx"
-        "ingressAnnotations" : {
-          "cert-manager.io/cluster-issuer" = var.cert_manager_issuer
-        }
-      }
-    }
-    "yataiSystem" = {
-      "namespace" = local.namespace
-    }
-  }
-}
-
-resource "helm_release" "yatai_deployment" {
-  depends_on = [time_sleep.wait_yatai_deployment_crds]
-  name       = "yatai-deployment"
-  repository = "https://bentoml.github.io/helm-charts"
-  chart      = "yatai-deployment"
-  version    = "1.1.7"
-  namespace  = local.namespace
-  values     = [yamlencode(local.yatai_deployment_config)]
-}
-
-resource "time_sleep" "wait_yatai_deployment" {
-  depends_on      = [helm_release.yatai_deployment]
-  create_duration = local.yatai_wait_duration
-}
-
 locals {
   yatai_config = {
     "postgresql" = {
@@ -139,11 +95,105 @@ locals {
 }
 
 resource "helm_release" "yatai" {
-  depends_on = [time_sleep.wait_yatai_deployment]
   name       = "yatai"
   repository = "https://bentoml.github.io/helm-charts"
   chart      = "yatai"
   version    = "1.1.7"
   namespace  = local.namespace
   values     = [yamlencode(local.yatai_config)]
+}
+
+resource "time_sleep" "wait_yatai" {
+  depends_on      = [helm_release.yatai]
+  create_duration = local.yatai_wait_duration
+}
+
+# ToDo: Ensure yatai-image-builder depends on cert-manager
+# cert-manager should be destroyed AFTER yatai-image-builder
+
+resource "helm_release" "yatai_image_builder_crds" {
+  depends_on = [time_sleep.wait_yatai]
+  name       = "yatai-image-builder-crds"
+  repository = "https://bentoml.github.io/helm-charts"
+  chart      = "yatai-image-builder-crds"
+  version    = "1.1.3"
+  namespace  = local.namespace
+}
+
+resource "time_sleep" "wait_yatai_image_builder_crds" {
+  depends_on      = [helm_release.yatai_image_builder_crds]
+  create_duration = local.yatai_wait_duration
+}
+
+locals {
+  yatai_image_builder_config = {
+    "dockerRegistry" = {
+      "server"              = var.docker_registry_server
+      "username"            = var.docker_registry_username
+      "password"            = var.docker_registry_password
+      "secure"              = var.docker_registry_secure
+      "bentoRepositoryName" = var.docker_registry_repository_name
+    },
+    "yataiSystem" = {
+      "namespace" = local.namespace
+    },
+    "yatai" = {
+      "endpoint" = "http://yatai.${local.namespace}.svc.cluster.local"
+    }
+  }
+}
+
+resource "helm_release" "yatai_image_builder" {
+  depends_on = [time_sleep.wait_yatai_image_builder_crds]
+  name       = "yatai-image-builder"
+  repository = "https://bentoml.github.io/helm-charts"
+  chart      = "yatai-image-builder"
+  version    = "1.1.3"
+  namespace  = local.namespace
+  values     = [yamlencode(local.yatai_image_builder_config)]
+}
+
+resource "time_sleep" "wait_yatai_image_builder" {
+  depends_on      = [helm_release.yatai_image_builder]
+  create_duration = local.yatai_wait_duration
+}
+
+resource "helm_release" "yatai_deployment_crds" {
+  depends_on = [time_sleep.wait_yatai_image_builder]
+  name       = "yatai-deployment-crds"
+  repository = "https://bentoml.github.io/helm-charts"
+  chart      = "yatai-deployment-crds"
+  version    = "1.1.9"
+  namespace  = local.namespace
+}
+
+resource "time_sleep" "wait_yatai_deployment_crds" {
+  depends_on      = [helm_release.yatai_deployment_crds]
+  create_duration = local.yatai_wait_duration
+}
+
+locals {
+  yatai_deployment_config = {
+    "layers" = {
+      "network" = {
+        "ingressClass" = "nginx"
+        "ingressAnnotations" : {
+          "cert-manager.io/cluster-issuer" = var.cert_manager_issuer
+        }
+      }
+    }
+    "yataiSystem" = {
+      "namespace" = local.namespace
+    }
+  }
+}
+
+resource "helm_release" "yatai_deployment" {
+  depends_on = [time_sleep.wait_yatai_deployment_crds]
+  name       = "yatai-deployment"
+  repository = "https://bentoml.github.io/helm-charts"
+  chart      = "yatai-deployment"
+  version    = "1.1.9"
+  namespace  = local.namespace
+  values     = [yamlencode(local.yatai_deployment_config)]
 }

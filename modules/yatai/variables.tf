@@ -31,3 +31,25 @@ variable "namespace" {
   type    = string
   default = null
 }
+
+variable "docker_registry_server" {
+  type = string
+}
+
+variable "docker_registry_username" {
+  type = string
+}
+
+variable "docker_registry_password" {
+  type      = string
+  sensitive = true
+}
+
+variable "docker_registry_secure" {
+  type    = bool
+  default = true
+}
+
+variable "docker_registry_repository_name" {
+  type = string
+}

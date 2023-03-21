@@ -26,6 +26,27 @@ variable "zones" {
   default     = ["europe-west1-b", "europe-west1-c", "europe-west1-d"]
 }
 
+variable "docker_registry_server" {
+  type        = string
+  description = "URL of the container registry"
+}
+
+variable "docker_registry_username" {
+  type        = string
+  description = "Username of the container registry"
+}
+
+variable "docker_registry_password" {
+  type        = string
+  description = "Password for the username of the container registry"
+  sensitive   = true
+}
+
+variable "docker_registry_repository_name" {
+  type        = string
+  description = "Repository in the container registry"
+}
+
 variable "domain_docs" {
   type        = string
   description = "Public DNS domain of the MODERATE documentation site"

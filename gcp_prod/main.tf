@@ -100,4 +100,8 @@ module "yatai" {
   postgres_host                     = module.postgres_cloud_sql.cloud_sql_proxy_service
   cert_manager_issuer               = module.cert_manager.cluster_issuer_prod_name
   domain                            = var.domain_yatai
+  docker_registry_server            = var.docker_registry_server
+  docker_registry_username          = var.docker_registry_username
+  docker_registry_password          = var.docker_registry_password
+  docker_registry_repository_name   = var.docker_registry_repository_name
 }
