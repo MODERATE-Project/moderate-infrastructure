@@ -111,5 +111,5 @@ module "yatai" {
   docker_registry_server            = var.docker_registry_server
   docker_registry_username          = var.docker_registry_username
   docker_registry_password          = var.docker_registry_password
-  docker_registry_repository_name   = var.docker_registry_repository_name
+  docker_bento_repository_name      = "${var.project_id_common}/${var.artifact_registry_repository_name}/bentos"
 }

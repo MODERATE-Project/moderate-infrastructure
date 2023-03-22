@@ -135,7 +135,7 @@ locals {
       "username"            = var.docker_registry_username
       "password"            = var.docker_registry_password
       "secure"              = var.docker_registry_secure
-      "bentoRepositoryName" = var.docker_registry_repository_name
+      "bentoRepositoryName" = var.docker_bento_repository_name
     },
     "yataiSystem" = {
       "namespace" = local.namespace

@@ -28,7 +28,8 @@ variable "zones" {
 
 variable "docker_registry_server" {
   type        = string
-  description = "URL of the container registry"
+  description = "URL of the container registry without the HTTP/S scheme"
+  default     = "europe-west1-docker.pkg.dev"
 }
 
 variable "docker_registry_username" {
@@ -42,9 +43,9 @@ variable "docker_registry_password" {
   sensitive   = true
 }
 
-variable "docker_registry_repository_name" {
+variable "artifact_registry_repository_name" {
   type        = string
-  description = "Repository in the container registry"
+  description = "Name of the repository in Artifact Registry"
 }
 
 variable "domain_docs" {

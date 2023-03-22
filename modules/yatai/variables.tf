@@ -50,6 +50,6 @@ variable "docker_registry_secure" {
   default = true
 }
 
-variable "docker_registry_repository_name" {
+variable "docker_bento_repository_name" {
   type = string
 }

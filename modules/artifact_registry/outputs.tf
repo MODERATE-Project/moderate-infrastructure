@@ -27,7 +27,7 @@ output "gh_sa_email" {
 # https://cloud.google.com/artifact-registry/docs/docker/authentication#json-key
 
 output "docker_registry_server" {
-  value = "https://${google_artifact_registry_repository.image_repository.location}-docker.pkg.dev"
+  value = "${google_artifact_registry_repository.image_repository.location}-docker.pkg.dev"
 }
 
 output "docker_registry_repository_name" {
