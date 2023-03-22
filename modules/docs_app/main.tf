@@ -69,7 +69,7 @@ resource "kubernetes_service" "docs" {
 }
 
 
-resource "kubernetes_ingress_v1" "hello" {
+resource "kubernetes_ingress_v1" "docs" {
   metadata {
     name      = "docs-ingress"
     namespace = local.namespace

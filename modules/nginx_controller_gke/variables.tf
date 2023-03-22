@@ -20,8 +20,7 @@ variable "tcp_services" {
 }
 
 variable "cluster_admin_account" {
-  type        = string
-  description = "Google Cloud account as reported by 'gcloud config get-value account'"
+  type = string
 }
 
 variable "gke_network_name" {

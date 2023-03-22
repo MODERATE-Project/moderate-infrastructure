@@ -73,13 +73,19 @@ module "nginx_controller_gke" {
 }
 
 module "cert_manager" {
+  depends_on                  = [module.nginx_controller_gke]
   source                      = "../modules/cert_manager"
   cluster_admin_account       = local.cluster_admin_email
   kube_host                   = module.gke_cluster.kubernetes_host
   kube_cluster_ca_certificate = module.gke_cluster.kubernetes_cluster_ca_cert
+
+  providers = {
+    kubectl = kubectl
+  }
 }
 
 module "docs_app" {
+  depends_on          = [module.nginx_controller_gke]
   source              = "../modules/docs_app"
   domain              = var.domain_docs
   cert_manager_issuer = module.cert_manager.cluster_issuer_prod_name
@@ -94,12 +100,7 @@ module "postgres_cloud_sql" {
 
 module "yatai" {
   # This is to ensure yatai-image-builder depends on cert-manager
-
-  depends_on = [
-    module.cert_manager.cluster_issuer_staging_uid,
-    module.cert_manager.cluster_issuer_prod_uid
-  ]
-
+  depends_on                        = [module.cert_manager]
   source                            = "../modules/yatai"
   project_id                        = var.project_id
   region                            = var.region
