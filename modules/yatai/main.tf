@@ -73,7 +73,7 @@ locals {
       "sslmode"  = "disable"
     }
     "s3" = {
-      "endpoint"   = "https://storage.googleapis.com"
+      "endpoint"   = "storage.googleapis.com"
       "region"     = "auto"
       "bucketName" = module.bucket.name
       "secure"     = true
