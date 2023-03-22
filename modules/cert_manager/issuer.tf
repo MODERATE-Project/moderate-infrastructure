@@ -9,9 +9,8 @@ locals {
 # https://github.com/cert-manager/cert-manager/issues/5267
 
 resource "kubectl_manifest" "letsencrypt_staging_issuer" {
-  depends_on = [
-    time_sleep.wait_after_helm_cert_manager
-  ]
+  depends_on = [time_sleep.wait_after_helm_cert_manager]
+  wait       = true
 
   yaml_body = <<-EOF
     apiVersion: cert-manager.io/v1
@@ -36,9 +35,8 @@ resource "kubectl_manifest" "letsencrypt_staging_issuer" {
 }
 
 resource "kubectl_manifest" "letsencrypt_prod_issuer" {
-  depends_on = [
-    time_sleep.wait_after_helm_cert_manager
-  ]
+  depends_on = [time_sleep.wait_after_helm_cert_manager]
+  wait       = true
 
   yaml_body = <<-EOF
     apiVersion: cert-manager.io/v1

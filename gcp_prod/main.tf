@@ -93,6 +93,13 @@ module "postgres_cloud_sql" {
 }
 
 module "yatai" {
+  # This is to ensure yatai-image-builder depends on cert-manager
+
+  depends_on = [
+    module.cert_manager.cluster_issuer_staging_uid,
+    module.cert_manager.cluster_issuer_prod_uid
+  ]
+
   source                            = "../modules/yatai"
   project_id                        = var.project_id
   region                            = var.region

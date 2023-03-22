@@ -54,9 +54,13 @@ resource "google_sql_database" "sql_database" {
   name     = "yatai"
 }
 
+# ToDo: Replace static wait by something more elegant
+
 locals {
   yatai_wait_duration = "20s"
 }
+
+# https://docs.bentoml.org/projects/yatai/en/latest/installation/yatai.html
 
 locals {
   yatai_config = {
@@ -108,8 +112,7 @@ resource "time_sleep" "wait_yatai" {
   create_duration = local.yatai_wait_duration
 }
 
-# ToDo: Ensure yatai-image-builder depends on cert-manager
-# cert-manager should be destroyed AFTER yatai-image-builder
+# https://docs.bentoml.org/projects/yatai/en/latest/installation/yatai_image_builder.html
 
 resource "helm_release" "yatai_image_builder_crds" {
   depends_on = [time_sleep.wait_yatai]
@@ -157,6 +160,8 @@ resource "time_sleep" "wait_yatai_image_builder" {
   depends_on      = [helm_release.yatai_image_builder]
   create_duration = local.yatai_wait_duration
 }
+
+# https://docs.bentoml.org/projects/yatai/en/latest/installation/yatai_deployment.html
 
 resource "helm_release" "yatai_deployment_crds" {
   depends_on = [time_sleep.wait_yatai_image_builder]
