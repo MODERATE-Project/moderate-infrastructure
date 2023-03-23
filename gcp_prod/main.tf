@@ -98,14 +98,20 @@ module "postgres_cloud_sql" {
   cluster_network_id = module.gke_cluster.cluster_network_id
 }
 
+module "postgres_cloud_sql_proxy" {
+  depends_on                = [module.gke_cluster]
+  source                    = "../modules/postgres_cloud_sql_proxy"
+  project_id                = var.project_id
+  cloud_sql_connection_name = module.postgres_cloud_sql.sql_instance_connection_name
+}
+
 module "yatai" {
-  # This is to ensure yatai-image-builder depends on cert-manager
   depends_on                        = [module.cert_manager]
   source                            = "../modules/yatai"
   project_id                        = var.project_id
   region                            = var.region
   google_sql_database_instance_name = module.postgres_cloud_sql.sql_instance_name
-  postgres_host                     = module.postgres_cloud_sql.cloud_sql_proxy_service
+  postgres_host                     = module.postgres_cloud_sql_proxy.cloud_sql_proxy_service
   cert_manager_issuer               = module.cert_manager.cluster_issuer_prod_name
   domain                            = var.domain_yatai
   docker_registry_server            = var.docker_registry_server

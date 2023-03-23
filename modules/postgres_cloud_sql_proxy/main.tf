@@ -1,33 +1,35 @@
 resource "kubernetes_namespace" "cloud_sql" {
+  count = var.namespace == null ? 1 : 0
   metadata {
     annotations = { name = "cloudsql" }
     name        = "cloudsql"
   }
 }
 
-module "cloud_sql_proxy_wi" {
-  source     = "terraform-google-modules/kubernetes-engine/google//modules/workload-identity"
-  name       = "cloud-sql-proxy"
-  namespace  = kubernetes_namespace.cloud_sql.id
-  project_id = var.project_id
-  roles      = ["roles/cloudsql.client"]
-}
-
 locals {
   proxy_app     = "cloud-sql-proxy"
   postgres_port = 5432
+  namespace     = var.namespace == null ? one(kubernetes_namespace.cloud_sql[*].id) : var.namespace
+}
+
+module "cloud_sql_proxy_wi" {
+  source     = "terraform-google-modules/kubernetes-engine/google//modules/workload-identity"
+  name       = "cloud-sql-proxy"
+  namespace  = local.namespace
+  project_id = var.project_id
+  roles      = ["roles/cloudsql.client"]
 }
 
 resource "kubernetes_deployment" "cloud_sql" {
   metadata {
     name      = "cloud-sql-deployment"
-    namespace = kubernetes_namespace.cloud_sql.id
+    namespace = local.namespace
     labels = {
       app = local.proxy_app
     }
   }
   spec {
-    replicas = 1
+    replicas = var.replicas
     selector {
       match_labels = {
         app = local.proxy_app
@@ -52,7 +54,7 @@ resource "kubernetes_deployment" "cloud_sql" {
             "--structured-logs",
             "--port=${local.postgres_port}",
             "--address=0.0.0.0",
-            "${google_sql_database_instance.postgres_sql_instance.connection_name}"
+            "${var.cloud_sql_connection_name}"
           ]
           security_context {
             run_as_non_root = true
@@ -79,7 +81,7 @@ resource "kubernetes_deployment" "cloud_sql" {
 resource "kubernetes_service" "cloud_sql" {
   metadata {
     name      = "cloud-sql-service"
-    namespace = kubernetes_namespace.cloud_sql.id
+    namespace = local.namespace
   }
   spec {
     selector = {
