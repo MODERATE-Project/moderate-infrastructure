@@ -43,6 +43,8 @@ module "gke_cluster" {
   region               = var.region
   zones                = var.zones
   registry_project_ids = [var.project_id_common]
+  # A cheaper shared-core machine type for the first stages of the project
+  nodes_machine_type = "e2-medium"
 }
 
 provider "kubernetes" {
