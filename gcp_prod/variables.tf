@@ -55,5 +55,10 @@ variable "domain_docs" {
 
 variable "domain_yatai" {
   type        = string
-  description = "Public DNS domain of the Yatai web application"
+  description = "Public DNS domain of the Yatai service"
+}
+
+variable "domain_keycloak" {
+  type        = string
+  description = "Public DNS domain of the Keycloak service"
 }

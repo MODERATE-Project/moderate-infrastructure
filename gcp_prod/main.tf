@@ -121,3 +121,13 @@ module "yatai" {
   docker_registry_password          = var.docker_registry_password
   docker_bento_repository_name      = "${var.project_id_common}/${var.artifact_registry_repository_name}/bentos"
 }
+
+module "keycloak" {
+  depends_on                         = [module.cert_manager]
+  source                             = "../modules/keycloak"
+  project_id                         = var.project_id
+  domain                             = var.domain_keycloak
+  cert_manager_issuer                = module.cert_manager.cluster_issuer_prod_name
+  cloud_sql_instance_name            = module.postgres_cloud_sql.sql_instance_name
+  cloud_sql_instance_connection_name = module.postgres_cloud_sql.sql_instance_connection_name
+}
