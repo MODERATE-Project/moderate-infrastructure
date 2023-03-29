@@ -43,6 +43,8 @@ module "gke_cluster" {
   region               = var.region
   zones                = var.zones
   registry_project_ids = [var.project_id_common]
+  # This should be true when in production
+  regional = false
   # A cheaper shared-core machine type for the first stages of the project
   nodes_machine_type = "e2-medium"
 }
@@ -130,4 +132,11 @@ module "keycloak" {
   cert_manager_issuer                = module.cert_manager.cluster_issuer_prod_name
   cloud_sql_instance_name            = module.postgres_cloud_sql.sql_instance_name
   cloud_sql_instance_connection_name = module.postgres_cloud_sql.sql_instance_connection_name
+}
+
+module "apisix" {
+  depends_on          = [module.cert_manager]
+  source              = "../modules/apisix"
+  domain              = "api.moderate.cloud"
+  cert_manager_issuer = module.cert_manager.cluster_issuer_prod_name
 }

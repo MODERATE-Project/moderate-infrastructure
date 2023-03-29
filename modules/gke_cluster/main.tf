@@ -8,6 +8,7 @@ module "gke" {
   name                       = "gke-cluster"
   region                     = var.region
   zones                      = var.zones
+  regional                   = var.regional
   network                    = google_compute_network.gke_cluster_network.name
   subnetwork                 = google_compute_subnetwork.gke_cluster_subnetwork.name
   ip_range_pods              = local.range_name_pods

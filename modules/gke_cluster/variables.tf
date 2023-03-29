@@ -45,3 +45,9 @@ variable "registry_project_ids" {
   description = "Projects holding Artifact Registries"
   default     = []
 }
+
+variable "regional" {
+  type        = bool
+  description = "Whether is a regional cluster"
+  default     = true
+}
