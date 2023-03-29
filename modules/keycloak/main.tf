@@ -23,7 +23,6 @@ resource "kubernetes_config_map" "keycloak" {
   }
 
   data = {
-    KEYCLOAK_ADMIN       = "admin"
     KC_PROXY             = "edge"
     KC_LOG_CONSOLE_COLOR = "true"
     KC_LOG_LEVEL         = "debug"
@@ -59,6 +58,7 @@ resource "kubernetes_secret" "keycloak" {
     KC_DB_URL_PORT          = local.postgres_port
     KC_DB_URL_DATABASE      = google_sql_database.sql_database.name
     KC_DB_URL_HOST          = "localhost"
+    KEYCLOAK_ADMIN          = "admin"
     KEYCLOAK_ADMIN_PASSWORD = random_password.password_admin_keycloak.result
   }
 }
@@ -146,8 +146,8 @@ resource "kubernetes_deployment" "keycloak" {
               memory = "2Gi"
             }
             requests = {
-              cpu    = "250m"
-              memory = "512m"
+              cpu    = "100m"
+              memory = "256Mi"
             }
           }
         }

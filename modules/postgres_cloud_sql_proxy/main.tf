@@ -68,7 +68,7 @@ resource "kubernetes_deployment" "cloud_sql" {
               memory = "2Gi"
             }
             requests = {
-              cpu    = "200m"
+              cpu    = "100m"
               memory = "256Mi"
             }
           }
@@ -91,6 +91,6 @@ resource "kubernetes_service" "cloud_sql" {
       port        = local.postgres_port
       target_port = local.postgres_port
     }
-    type = "NodePort"
+    type = "ClusterIP"
   }
 }
