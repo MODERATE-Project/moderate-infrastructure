@@ -120,7 +120,7 @@ resource "kubernetes_deployment" "keycloak" {
               memory = "4Gi"
             }
             requests = {
-              cpu    = "200m"
+              cpu    = "100m"
               memory = "256Mi"
             }
           }

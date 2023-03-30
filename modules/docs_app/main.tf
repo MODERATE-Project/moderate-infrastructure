@@ -41,7 +41,7 @@ resource "kubernetes_deployment" "docs" {
           }
           resources {
             requests = {
-              cpu    = "150m"
+              cpu    = "100m"
               memory = "128Mi"
             }
           }
