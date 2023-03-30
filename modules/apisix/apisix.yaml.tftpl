@@ -1,12 +1,21 @@
 routes:
-  - uri: /hello
-    upstream:
-      nodes:
-        "127.0.0.1:1980": 1
-      type: roundrobin
-  - uri: /hello2
-    upstream:
-      nodes:
-        "127.0.0.1:1981": 1
-      type: roundrobin
+  - uri: /*
+    host: ${host_docs}
+    service_id: 1001
+    plugins:
+      basic-auth:
+services:
+  - id: 1001
+    upstream_id: 2001
+upstreams:
+  - id: 2001
+    nodes:
+      "docs-service.docs.svc.cluster.local:8080": 1
+    type: roundrobin
+consumers:
+  - username: docs
+    plugins:
+      basic-auth:
+        username: docs
+        password: ${docs_basic_auth_password}
 #END

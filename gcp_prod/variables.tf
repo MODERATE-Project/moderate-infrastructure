@@ -48,6 +48,11 @@ variable "artifact_registry_repository_name" {
   description = "Name of the repository in Artifact Registry"
 }
 
+variable "base_domain" {
+  type        = string
+  description = "The base public DNS domain that serves as the origin for all other subdomains"
+}
+
 variable "domain_docs" {
   type        = string
   description = "Public DNS domain of the MODERATE documentation site"

@@ -18,6 +18,22 @@ resource "random_password" "admin_key" {
   special = false
 }
 
+resource "random_password" "docs_basic_auth_password" {
+  length  = 20
+  special = false
+}
+
+locals {
+  domain_base = "${var.base_subdomain}.${var.base_domain}"
+  domain_docs = "${var.docs_subdomain}.${local.domain_base}"
+
+  all_domains = [
+    local.domain_base,
+    local.domain_docs
+  ]
+}
+
+# ToDo: This should be a Secret instead of a ConfigMap
 resource "kubernetes_config_map" "apisix" {
   metadata {
     name      = "apisix-config"
@@ -32,7 +48,10 @@ resource "kubernetes_config_map" "apisix" {
       apisix_prometheus_export_port = local.apisix_prometheus_export_port
     })
 
-    "apisix.yaml" = templatefile("${path.module}/apisix.yaml.tftpl", {})
+    "apisix.yaml" = templatefile("${path.module}/apisix.yaml.tftpl", {
+      docs_basic_auth_password = random_password.docs_basic_auth_password.result
+      host_docs                = local.domain_docs
+    })
   }
 }
 
@@ -46,6 +65,11 @@ locals {
 }
 
 resource "kubernetes_deployment" "apisix" {
+  lifecycle {
+    replace_triggered_by = [
+      kubernetes_config_map.apisix.data
+    ]
+  }
   metadata {
     name      = "apisix-deployment"
     namespace = local.namespace
@@ -124,6 +148,66 @@ resource "kubernetes_deployment" "apisix" {
         volume {
           name = local.vol_config
           empty_dir {}
+        }
+      }
+    }
+  }
+}
+
+resource "kubernetes_service" "apisix" {
+  metadata {
+    name      = "apisix-service"
+    namespace = local.namespace
+  }
+  spec {
+    selector = {
+      app = kubernetes_deployment.apisix.spec[0].template[0].metadata[0].labels.app
+    }
+    port {
+      port        = local.apisix_node_listen
+      target_port = local.apisix_node_listen
+    }
+    type = "NodePort"
+  }
+}
+
+resource "kubernetes_ingress_v1" "apisix" {
+  metadata {
+    name      = "apisix-ingress"
+    namespace = local.namespace
+
+    annotations = {
+      "kubernetes.io/ingress.class"    = "nginx"
+      "cert-manager.io/cluster-issuer" = var.cert_manager_issuer
+    }
+  }
+
+  spec {
+    tls {
+      secret_name = "apisix-ingress-tls-secret"
+      hosts       = local.all_domains
+    }
+
+    dynamic "rule" {
+      for_each = local.all_domains
+
+      content {
+        host = rule.value
+
+        http {
+          path {
+            backend {
+              service {
+                name = one(kubernetes_service.apisix.metadata[*].name)
+                port {
+                  number = local.apisix_node_listen
+                }
+              }
+            }
+
+            path      = "/"
+            path_type = "Prefix"
+          }
         }
       }
     }

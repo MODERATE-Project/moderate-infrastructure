@@ -137,6 +137,6 @@ module "keycloak" {
 module "apisix" {
   depends_on          = [module.cert_manager]
   source              = "../modules/apisix"
-  domain              = "api.moderate.cloud"
+  base_domain         = var.base_domain
   cert_manager_issuer = module.cert_manager.cluster_issuer_prod_name
 }

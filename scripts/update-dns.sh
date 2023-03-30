@@ -13,9 +13,11 @@ set -x
 : ${TTL:="300"}
 
 DOMAINS=(
-    "docs.${BASE_DOMAIN}"
-    "yatai.${BASE_DOMAIN}"
-    "keycloak.${BASE_DOMAIN}"
+    "docs"
+    "yatai"
+    "keycloak"
+    "api"
+    "docs.api"
 )
 
 LB_IP=$(kubectl get \
@@ -31,14 +33,16 @@ gcloud --project=${PROJECT_ID} \
     --zone=${MANAGED_ZONE}
 
 for val in ${DOMAINS[@]}; do
+    CURR_DOMAIN="${val}.${BASE_DOMAIN}"
+
     gcloud --project=${PROJECT_ID} \
-        dns record-sets delete ${val} \
+        dns record-sets delete ${CURR_DOMAIN} \
         --type=A \
         --zone=${MANAGED_ZONE} || true
 
     gcloud --project=${PROJECT_ID} \
         dns record-sets transaction add ${LB_IP} \
-        --name=${val} \
+        --name=${CURR_DOMAIN} \
         --ttl=${TTL} \
         --type=A \
         --zone=${MANAGED_ZONE}
