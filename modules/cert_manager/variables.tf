@@ -13,11 +13,12 @@ variable "cluster_admin_account" {
   description = "Google Cloud account as reported by 'gcloud config get-value account'"
 }
 
-variable "kube_host" {
-  type = string
+variable "use_dns01_google_cloud_dns" {
+  type    = bool
+  default = false
 }
 
-variable "kube_cluster_ca_certificate" {
-  type      = string
-  sensitive = true
+variable "project_id_cloud_dns" {
+  type    = string
+  default = null
 }

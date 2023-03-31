@@ -77,11 +77,11 @@ module "nginx_controller_gke" {
 }
 
 module "cert_manager" {
-  depends_on                  = [module.nginx_controller_gke]
-  source                      = "../modules/cert_manager"
-  cluster_admin_account       = local.cluster_admin_email
-  kube_host                   = module.gke_cluster.kubernetes_host
-  kube_cluster_ca_certificate = module.gke_cluster.kubernetes_cluster_ca_cert
+  depends_on                 = [module.nginx_controller_gke]
+  source                     = "../modules/cert_manager"
+  cluster_admin_account      = local.cluster_admin_email
+  use_dns01_google_cloud_dns = true
+  project_id_cloud_dns       = var.project_id_common
 
   providers = {
     kubectl = kubectl
