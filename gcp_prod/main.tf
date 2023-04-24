@@ -139,4 +139,6 @@ module "apisix" {
   source              = "../modules/apisix"
   base_domain         = var.base_domain
   cert_manager_issuer = module.cert_manager.cluster_issuer_prod_name
+  yatai_namespace     = module.yatai.namespace
+  yatai_proxy_service = module.yatai.proxy_service_name
 }

@@ -24,12 +24,14 @@ resource "random_password" "docs_basic_auth_password" {
 }
 
 locals {
-  domain_base = "${var.base_subdomain}.${var.base_domain}"
-  domain_docs = "${var.docs_subdomain}.${local.domain_base}"
+  domain_base  = "${var.base_subdomain}.${var.base_domain}"
+  domain_docs  = "${var.docs_subdomain}.${local.domain_base}"
+  domain_yatai = "*.${var.yatai_subdomain}.${local.domain_base}"
 
   all_domains = [
     local.domain_base,
-    local.domain_docs
+    local.domain_docs,
+    local.domain_yatai
   ]
 }
 
@@ -51,6 +53,9 @@ resource "kubernetes_config_map" "apisix" {
     "apisix.yaml" = templatefile("${path.module}/apisix.yaml.tftpl", {
       docs_basic_auth_password = random_password.docs_basic_auth_password.result
       host_docs                = local.domain_docs
+      host_yatai               = local.domain_yatai
+      yatai_ns                 = var.yatai_namespace
+      yatai_proxy_sv           = var.yatai_proxy_service
     })
   }
 }

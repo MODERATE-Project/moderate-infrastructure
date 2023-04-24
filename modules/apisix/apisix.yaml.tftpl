@@ -3,7 +3,13 @@ routes:
     host: ${host_docs}
     service_id: 1001
     plugins:
-      basic-auth:
+      basic-auth: {}
+  - uri: /*
+    host: ${host_yatai}
+    upstream:
+      type: roundrobin
+      nodes:
+        "${yatai_proxy_sv}.${yatai_ns}.svc.cluster.local:80": 1
 services:
   - id: 1001
     upstream_id: 2001
