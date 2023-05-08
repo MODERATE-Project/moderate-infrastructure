@@ -10,9 +10,14 @@ variable "zones" {
   type = list(string)
 }
 
+variable "kubernetes_version" {
+  type    = string
+  default = null
+}
+
 variable "cluster_subnet_cidr" {
   type    = string
-  default = "10.2.0.0/16"
+  default = "10.30.0.0/16"
 }
 
 variable "cluster_subnet_pods_cidr" {

@@ -4,6 +4,8 @@ locals {
 
 module "gke" {
   source                     = "terraform-google-modules/kubernetes-engine/google//modules/private-cluster"
+  kubernetes_version         = var.kubernetes_version == null ? "latest" : var.kubernetes_version
+  release_channel            = var.kubernetes_version == null ? "STABLE" : null
   project_id                 = var.project_id
   name                       = "gke-cluster"
   region                     = var.region
@@ -36,7 +38,8 @@ module "gke" {
       enable_gcfs     = false
       enable_gvnic    = false
       auto_repair     = true
-      auto_upgrade    = true
+      auto_upgrade    = var.kubernetes_version == null ? true : false
+      version         = var.kubernetes_version == null ? "" : var.kubernetes_version
       preemptible     = false
     },
   ]
