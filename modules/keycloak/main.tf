@@ -29,6 +29,33 @@ resource "kubernetes_config_map" "keycloak" {
   }
 }
 
+resource "random_password" "apisix_client_secret" {
+  length = 20
+}
+
+locals {
+  realm_name                     = "moderate"
+  apisix_client_id               = "apisix"
+  apisix_client_default_resource = "Default Resource"
+}
+
+# ToDo: This should be a Secret instead of a ConfigMap
+resource "kubernetes_config_map" "keycloak_realm" {
+  metadata {
+    name      = "keycloak-realm"
+    namespace = local.namespace
+  }
+
+  data = {
+    "realm.json" = templatefile("${path.module}/realm.json.tftpl", {
+      tf_realm_name                     = local.realm_name
+      tf_apisix_client_id               = local.apisix_client_id
+      tf_apisix_client_secret           = random_password.apisix_client_secret.result
+      tf_apisix_client_default_resource = local.apisix_client_default_resource
+    })
+  }
+}
+
 resource "random_password" "password_db" {
   length = 20
 }
@@ -72,6 +99,11 @@ module "cloud_sql_proxy_wi" {
 }
 
 resource "kubernetes_deployment" "keycloak" {
+  lifecycle {
+    replace_triggered_by = [
+      kubernetes_config_map.keycloak_realm.data
+    ]
+  }
   metadata {
     name      = "keycloak-deployment"
     namespace = local.namespace
@@ -99,7 +131,8 @@ resource "kubernetes_deployment" "keycloak" {
           name  = "keycloak"
           args = [
             "start",
-            "--hostname=${var.domain}"
+            "--hostname=${var.domain}",
+            "--import-realm"
           ]
           env_from {
             config_map_ref {
@@ -122,6 +155,21 @@ resource "kubernetes_deployment" "keycloak" {
             requests = {
               cpu    = "100m"
               memory = "256Mi"
+            }
+          }
+          volume_mount {
+            name       = "vol-import"
+            mount_path = "/opt/keycloak/data/import/realm.json"
+            sub_path   = "realm.json"
+          }
+        }
+        volume {
+          name = "vol-import"
+          config_map {
+            name = one(kubernetes_config_map.keycloak_realm.metadata[*].name)
+            items {
+              key  = "realm.json"
+              path = "realm.json"
             }
           }
         }

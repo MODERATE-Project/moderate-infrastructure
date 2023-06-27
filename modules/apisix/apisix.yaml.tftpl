@@ -10,6 +10,13 @@ routes:
       type: roundrobin
       nodes:
         "${yatai_proxy_sv}.${yatai_ns}.svc.cluster.local:80": 1
+    plugins:
+      authz-keycloak:
+        token_endpoint: https://${keycloak_subdomain}.${base_domain}/realms/${keycloak_realm}/protocol/openid-connect/token
+        client_id: ${keycloak_client_id}
+        client_secret: ${keycloak_client_secret}
+        permissions: ["${keycloak_permissions_yatai}"]
+        ssl_verify: false
 services:
   - id: 1001
     upstream_id: 2001

@@ -33,3 +33,25 @@ variable "namespace" {
   type    = string
   default = null
 }
+
+variable "keycloak_subdomain" {
+  type    = string
+  default = "keycloak"
+}
+
+variable "keycloak_realm" {
+  type = string
+}
+
+variable "keycloak_client_id" {
+  type = string
+}
+
+variable "keycloak_client_secret" {
+  type      = string
+  sensitive = true
+}
+
+variable "keycloak_permissions_yatai" {
+  type = string
+}

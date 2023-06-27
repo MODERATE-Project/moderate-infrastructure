@@ -140,10 +140,14 @@ module "keycloak" {
 }
 
 module "apisix" {
-  depends_on          = [module.cert_manager]
-  source              = "../modules/apisix"
-  base_domain         = var.base_domain
-  cert_manager_issuer = module.cert_manager.cluster_issuer_prod_name
-  yatai_namespace     = module.yatai.namespace
-  yatai_proxy_service = module.yatai.proxy_service_name
+  depends_on                 = [module.cert_manager]
+  source                     = "../modules/apisix"
+  base_domain                = var.base_domain
+  cert_manager_issuer        = module.cert_manager.cluster_issuer_prod_name
+  yatai_namespace            = module.yatai.namespace
+  yatai_proxy_service        = module.yatai.proxy_service_name
+  keycloak_realm             = module.keycloak.realm_name
+  keycloak_client_id         = module.keycloak.apisix_client_id
+  keycloak_client_secret     = module.keycloak.apisix_client_secret
+  keycloak_permissions_yatai = module.keycloak.apisix_client_default_resource
 }

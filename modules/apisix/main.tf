@@ -51,11 +51,17 @@ resource "kubernetes_config_map" "apisix" {
     })
 
     "apisix.yaml" = templatefile("${path.module}/apisix.yaml.tftpl", {
-      docs_basic_auth_password = random_password.docs_basic_auth_password.result
-      host_docs                = local.domain_docs
-      host_yatai               = local.domain_yatai
-      yatai_ns                 = var.yatai_namespace
-      yatai_proxy_sv           = var.yatai_proxy_service
+      docs_basic_auth_password   = random_password.docs_basic_auth_password.result
+      host_docs                  = local.domain_docs
+      host_yatai                 = local.domain_yatai
+      yatai_ns                   = var.yatai_namespace
+      yatai_proxy_sv             = var.yatai_proxy_service
+      base_domain                = var.base_domain
+      keycloak_subdomain         = var.keycloak_subdomain
+      keycloak_realm             = var.keycloak_realm
+      keycloak_client_id         = var.keycloak_client_id
+      keycloak_client_secret     = var.keycloak_client_secret
+      keycloak_permissions_yatai = var.keycloak_permissions_yatai
     })
   }
 }
