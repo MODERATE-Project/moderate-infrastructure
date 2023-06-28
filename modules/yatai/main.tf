@@ -102,7 +102,7 @@ resource "helm_release" "yatai" {
   name       = "yatai"
   repository = "https://bentoml.github.io/helm-charts"
   chart      = "yatai"
-  version    = "1.1.7"
+  version    = "1.1.9"
   namespace  = local.namespace
   values     = [yamlencode(local.yatai_config)]
 }
@@ -119,7 +119,7 @@ resource "helm_release" "yatai_image_builder_crds" {
   name       = "yatai-image-builder-crds"
   repository = "https://bentoml.github.io/helm-charts"
   chart      = "yatai-image-builder-crds"
-  version    = "1.1.3"
+  version    = "1.1.6"
   namespace  = local.namespace
 }
 
@@ -151,7 +151,7 @@ resource "helm_release" "yatai_image_builder" {
   name       = "yatai-image-builder"
   repository = "https://bentoml.github.io/helm-charts"
   chart      = "yatai-image-builder"
-  version    = "1.1.3"
+  version    = "1.1.6"
   namespace  = local.namespace
   values     = [yamlencode(local.yatai_image_builder_config)]
 }
@@ -168,7 +168,7 @@ resource "helm_release" "yatai_deployment_crds" {
   name       = "yatai-deployment-crds"
   repository = "https://bentoml.github.io/helm-charts"
   chart      = "yatai-deployment-crds"
-  version    = "1.1.9"
+  version    = "1.1.13"
   namespace  = local.namespace
 }
 
@@ -198,7 +198,7 @@ resource "helm_release" "yatai_deployment" {
   name       = "yatai-deployment"
   repository = "https://bentoml.github.io/helm-charts"
   chart      = "yatai-deployment"
-  version    = "1.1.9"
+  version    = "1.1.13"
   namespace  = local.namespace
   values     = [yamlencode(local.yatai_deployment_config)]
 }

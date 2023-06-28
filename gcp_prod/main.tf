@@ -48,11 +48,9 @@ module "gke_cluster" {
   # https://cloud.google.com/kubernetes-engine/docs/release-schedule
   # However, we need it for the time being to support Yatai:
   # https://github.com/bentoml/Yatai/issues/449
-  kubernetes_version = "1.22"
+  # kubernetes_version = "1.22"
   # This should be true when in production
   regional = false
-  # A cheaper shared-core machine type for the first stages of the project
-  # nodes_machine_type = "e2-medium"
 }
 
 provider "kubernetes" {
