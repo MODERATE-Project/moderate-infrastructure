@@ -43,6 +43,7 @@ module "gke_cluster" {
   region               = var.region
   zones                = var.zones
   registry_project_ids = [var.project_id_common]
+  enable_backup        = true
   # Version 1.22 is already in EOL:
   # https://cloud.google.com/kubernetes-engine/docs/release-schedule
   # However, we need it for the time being to support Yatai:

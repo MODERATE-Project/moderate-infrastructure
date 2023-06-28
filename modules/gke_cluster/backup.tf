@@ -1,5 +1,5 @@
 resource "google_gke_backup_backup_plan" "gke_backup_plan" {
-  name        = "gke-backup-plan"
+  name        = "backup-plan"
   cluster     = module.gke.cluster_id
   location    = var.region
   deactivated = var.enable_backup ? false : true
