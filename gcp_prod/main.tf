@@ -44,13 +44,10 @@ module "gke_cluster" {
   zones                = var.zones
   registry_project_ids = [var.project_id_common]
   enable_backup        = true
-  # Version 1.22 is already in EOL:
-  # https://cloud.google.com/kubernetes-engine/docs/release-schedule
-  # However, we need it for the time being to support Yatai:
-  # https://github.com/bentoml/Yatai/issues/449
-  # kubernetes_version = "1.22"
-  # This should be true when in production
+  # ToDo: This should be true when in production
   regional = false
+  # Set to 0 to enable destruction immediately after creation during development
+  backup_delete_lock_days = 0
 }
 
 provider "kubernetes" {
@@ -149,4 +146,9 @@ module "apisix" {
   keycloak_client_id         = module.keycloak.apisix_client_id
   keycloak_client_secret     = module.keycloak.apisix_client_secret
   keycloak_permissions_yatai = module.keycloak.apisix_client_default_resource
+}
+
+module "timescale" {
+  depends_on = [module.cert_manager]
+  source     = "../modules/timescale"
 }

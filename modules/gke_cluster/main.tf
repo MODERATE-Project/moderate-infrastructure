@@ -23,6 +23,7 @@ module "gke" {
   remove_default_node_pool   = true
   grant_registry_access      = true
   registry_project_ids       = var.registry_project_ids
+  gke_backup_agent_config    = true
 
   node_pools = [
     {

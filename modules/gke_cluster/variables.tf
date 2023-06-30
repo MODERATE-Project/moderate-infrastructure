@@ -87,5 +87,5 @@ variable "backup_delete_lock_days" {
 variable "backup_cron_schedule" {
   type        = string
   description = "Cron schedule for backup"
-  default     = "0 15 */1 * *"
+  default     = "0 2 */1 * *"
 }
