@@ -24,6 +24,7 @@ module "gke" {
   grant_registry_access      = true
   registry_project_ids       = var.registry_project_ids
   gke_backup_agent_config    = true
+  gce_pd_csi_driver          = true
 
   node_pools = [
     {

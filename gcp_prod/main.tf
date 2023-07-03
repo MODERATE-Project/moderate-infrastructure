@@ -46,7 +46,7 @@ module "gke_cluster" {
   enable_backup        = true
   # ToDo: This should be true when in production
   regional = false
-  # Set to 0 to enable destruction immediately after creation during development
+  # ToDo: This is set to 0 to enable immediate destruction during development
   backup_delete_lock_days = 0
 }
 

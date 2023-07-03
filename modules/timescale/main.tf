@@ -17,6 +17,22 @@ resource "random_password" "timescale_postgres_password" {
   special = false
 }
 
+resource "kubernetes_persistent_volume_claim" "timescale_pvc" {
+  metadata {
+    name      = "timescale-pvc"
+    namespace = local.namespace
+  }
+  spec {
+    access_modes = ["ReadWriteOnce"]
+    resources {
+      requests = {
+        storage = "${var.volume_size_gi}Gi"
+      }
+    }
+  }
+  wait_until_bound = false
+}
+
 # ToDo: Update configuration in accordance with the machine's resources.
 # https://docs.timescale.com/self-hosted/latest/configuration/about-configuration/
 resource "kubernetes_deployment" "timescale" {
@@ -49,6 +65,11 @@ resource "kubernetes_deployment" "timescale" {
           port {
             container_port = local.pg_port
           }
+          volume_mount {
+            name = "data-volume"
+            # https://docs.timescale.com/self-hosted/latest/install/installation-docker/
+            mount_path = "/home/postgresql/pgdata"
+          }
           resources {
             requests = {
               cpu    = "250m"
@@ -58,6 +79,16 @@ resource "kubernetes_deployment" "timescale" {
           env {
             name  = "POSTGRES_PASSWORD"
             value = random_password.timescale_postgres_password.result
+          }
+          env {
+            name  = "POSTGRES_DB"
+            value = var.default_db
+          }
+        }
+        volume {
+          name = "data-volume"
+          persistent_volume_claim {
+            claim_name = kubernetes_persistent_volume_claim.timescale_pvc.metadata[0].name
           }
         }
       }
