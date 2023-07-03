@@ -110,6 +110,12 @@ module "postgres_cloud_sql_proxy" {
   cloud_sql_connection_name = module.postgres_cloud_sql.sql_instance_connection_name
 }
 
+module "postgres_cloud_sql_postgis" {
+  source                            = "../modules/postgres_cloud_sql_postgis"
+  google_sql_database_instance_name = module.postgres_cloud_sql.sql_instance_name
+  postgres_host                     = module.postgres_cloud_sql_proxy.cloud_sql_proxy_service
+}
+
 module "yatai" {
   depends_on                        = [module.cert_manager]
   source                            = "../modules/yatai"
