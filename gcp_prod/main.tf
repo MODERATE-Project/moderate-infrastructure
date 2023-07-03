@@ -149,6 +149,9 @@ module "apisix" {
 }
 
 module "timescale" {
-  depends_on = [module.cert_manager]
-  source     = "../modules/timescale"
+  depends_on                  = [module.cert_manager]
+  source                      = "../modules/timescale"
+  grafana_enable              = true
+  grafana_cert_manager_issuer = module.cert_manager.cluster_issuer_prod_name
+  grafana_domain              = var.domain_timescale_grafana
 }
