@@ -1,5 +1,6 @@
 resource "random_password" "job_user_password" {
-  length = 20
+  length  = 20
+  special = false
 }
 
 resource "google_sql_user" "sql_user" {

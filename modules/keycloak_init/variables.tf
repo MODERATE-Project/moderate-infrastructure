@@ -1,7 +1,7 @@
 variable "backoff_limit" {
   type        = number
   description = "The number of retries before considering the job as failed."
-  default     = 10
+  default     = 12
 }
 
 variable "keycloak_admin_user" {

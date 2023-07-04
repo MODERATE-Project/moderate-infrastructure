@@ -17,5 +17,5 @@ variable "google_sql_database_instance_name" {
 variable "backoff_limit" {
   type        = number
   description = "The number of retries before considering the job as failed."
-  default     = 10
+  default     = 12
 }
