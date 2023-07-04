@@ -46,6 +46,9 @@ resource "kubernetes_job_v1" "enable_postgis" {
   metadata {
     name = "enable-postgis"
   }
+
+  wait_for_completion = false
+
   spec {
     template {
       metadata {
@@ -82,6 +85,6 @@ resource "kubernetes_job_v1" "enable_postgis" {
         restart_policy = "Never"
       }
     }
-    backoff_limit = 10
+    backoff_limit = var.backoff_limit
   }
 }
