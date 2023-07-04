@@ -1,16 +1,11 @@
-output "realm_name" {
-  value = local.realm_name
+output "keycloak_admin_user" {
+  value = local.admin_user
 }
 
-output "apisix_client_id" {
-  value = local.apisix_client_id
+output "keycloak_admin_pass" {
+  value = random_password.password_admin_keycloak.result
 }
 
-output "apisix_client_secret" {
-  value     = random_password.apisix_client_secret.result
-  sensitive = true
-}
-
-output "apisix_client_default_resource" {
-  value = local.apisix_client_default_resource
+output "keycloak_service_host_port" {
+  value = "${local.service_name}.${local.namespace}.svc.cluster.local:${local.service_port}"
 }

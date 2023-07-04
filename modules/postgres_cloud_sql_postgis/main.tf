@@ -86,5 +86,7 @@ resource "kubernetes_job_v1" "enable_postgis" {
       }
     }
     backoff_limit = var.backoff_limit
+    completions   = 1
+    parallelism   = 1
   }
 }

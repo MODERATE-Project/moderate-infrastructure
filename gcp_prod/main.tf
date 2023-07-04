@@ -141,6 +141,13 @@ module "keycloak" {
   cloud_sql_instance_connection_name = module.postgres_cloud_sql.sql_instance_connection_name
 }
 
+module "keycloak_init" {
+  source              = "../modules/keycloak_init"
+  keycloak_admin_user = module.keycloak.keycloak_admin_user
+  keycloak_admin_pass = module.keycloak.keycloak_admin_pass
+  keycloak_url        = "http://${module.keycloak.keycloak_service_host_port}"
+}
+
 module "apisix" {
   depends_on                 = [module.cert_manager]
   source                     = "../modules/apisix"
@@ -148,10 +155,10 @@ module "apisix" {
   cert_manager_issuer        = module.cert_manager.cluster_issuer_prod_name
   yatai_namespace            = module.yatai.namespace
   yatai_proxy_service        = module.yatai.proxy_service_name
-  keycloak_realm             = module.keycloak.realm_name
-  keycloak_client_id         = module.keycloak.apisix_client_id
-  keycloak_client_secret     = module.keycloak.apisix_client_secret
-  keycloak_permissions_yatai = module.keycloak.apisix_client_default_resource
+  keycloak_realm             = module.keycloak_init.moderate_realm_name
+  keycloak_client_id         = module.keycloak_init.apisix_client_id
+  keycloak_client_secret     = module.keycloak_init.apisix_client_secret
+  keycloak_permissions_yatai = module.keycloak_init.apisix_client_default_resource
 }
 
 module "timescale" {

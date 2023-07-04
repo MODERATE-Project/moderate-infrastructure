@@ -10,6 +10,7 @@ locals {
   app_name      = "keycloak-app"
   namespace     = var.namespace == null ? one(kubernetes_namespace.keycloak[*].id) : var.namespace
   postgres_port = 5432
+  admin_user    = "admin"
 }
 
 resource "random_password" "password_admin_keycloak" {
@@ -26,33 +27,6 @@ resource "kubernetes_config_map" "keycloak" {
     KC_PROXY             = "edge"
     KC_LOG_CONSOLE_COLOR = "true"
     KC_LOG_LEVEL         = "debug"
-  }
-}
-
-resource "random_password" "apisix_client_secret" {
-  length = 20
-}
-
-locals {
-  realm_name                     = "moderate"
-  apisix_client_id               = "apisix"
-  apisix_client_default_resource = "Default Resource"
-}
-
-# ToDo: This should be a Secret instead of a ConfigMap
-resource "kubernetes_config_map" "keycloak_realm" {
-  metadata {
-    name      = "keycloak-realm"
-    namespace = local.namespace
-  }
-
-  data = {
-    "realm.json" = templatefile("${path.module}/realm.json.tftpl", {
-      tf_realm_name                     = local.realm_name
-      tf_apisix_client_id               = local.apisix_client_id
-      tf_apisix_client_secret           = random_password.apisix_client_secret.result
-      tf_apisix_client_default_resource = local.apisix_client_default_resource
-    })
   }
 }
 
@@ -85,7 +59,7 @@ resource "kubernetes_secret" "keycloak" {
     KC_DB_URL_PORT          = local.postgres_port
     KC_DB_URL_DATABASE      = google_sql_database.sql_database.name
     KC_DB_URL_HOST          = "localhost"
-    KEYCLOAK_ADMIN          = "admin"
+    KEYCLOAK_ADMIN          = local.admin_user
     KEYCLOAK_ADMIN_PASSWORD = random_password.password_admin_keycloak.result
   }
 }
@@ -99,11 +73,6 @@ module "cloud_sql_proxy_wi" {
 }
 
 resource "kubernetes_deployment" "keycloak" {
-  lifecycle {
-    replace_triggered_by = [
-      kubernetes_config_map.keycloak_realm.data
-    ]
-  }
   metadata {
     name      = "keycloak-deployment"
     namespace = local.namespace
@@ -131,8 +100,7 @@ resource "kubernetes_deployment" "keycloak" {
           name  = "keycloak"
           args = [
             "start",
-            "--hostname=${var.domain}",
-            "--import-realm"
+            "--hostname=${var.domain}"
           ]
           env_from {
             config_map_ref {
@@ -155,21 +123,6 @@ resource "kubernetes_deployment" "keycloak" {
             requests = {
               cpu    = "100m"
               memory = "256Mi"
-            }
-          }
-          volume_mount {
-            name       = "vol-import"
-            mount_path = "/opt/keycloak/data/import/realm.json"
-            sub_path   = "realm.json"
-          }
-        }
-        volume {
-          name = "vol-import"
-          config_map {
-            name = one(kubernetes_config_map.keycloak_realm.metadata[*].name)
-            items {
-              key  = "realm.json"
-              path = "realm.json"
             }
           }
         }
@@ -204,9 +157,14 @@ resource "kubernetes_deployment" "keycloak" {
   }
 }
 
+locals {
+  service_name = "keycloak-service"
+  service_port = 9191
+}
+
 resource "kubernetes_service" "keycloak" {
   metadata {
-    name      = "keycloak-service"
+    name      = local.service_name
     namespace = local.namespace
   }
   spec {
@@ -214,7 +172,7 @@ resource "kubernetes_service" "keycloak" {
       app = kubernetes_deployment.keycloak.spec[0].template[0].metadata[0].labels.app
     }
     port {
-      port        = 9191
+      port        = local.service_port
       target_port = 8080
     }
     type = "NodePort"
@@ -248,7 +206,7 @@ resource "kubernetes_ingress_v1" "keycloak" {
             service {
               name = kubernetes_service.keycloak.metadata[0].name
               port {
-                number = 9191
+                number = local.service_port
               }
             }
           }
