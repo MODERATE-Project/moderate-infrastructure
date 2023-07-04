@@ -68,6 +68,11 @@ variable "domain_keycloak" {
   description = "Public DNS domain of the Keycloak service"
 }
 
+variable "domain_geoserver" {
+  type        = string
+  description = "Public DNS domain of the Geoserver service"
+}
+
 variable "domain_timescale_grafana" {
   type        = string
   description = "Public DNS domain of the companion Grafana dashboard for the Timescale database"
