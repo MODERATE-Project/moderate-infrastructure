@@ -148,6 +148,11 @@ module "keycloak_init" {
   keycloak_url        = "http://${module.keycloak.keycloak_service_host_port}"
 }
 
+module "api" {
+  depends_on = [module.nginx_controller_gke]
+  source     = "../modules/moderate_api"
+}
+
 module "apisix" {
   depends_on                 = [module.cert_manager]
   source                     = "../modules/apisix"
