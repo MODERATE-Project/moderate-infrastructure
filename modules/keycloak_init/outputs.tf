@@ -10,6 +10,10 @@ output "apisix_client_secret" {
   value = random_password.apisix_client_secret.result
 }
 
-output "apisix_client_default_resource" {
-  value = local.apisix_client_default_resource
+output "apisix_client_resource_yatai" {
+  value = local.apisix_client_resource_yatai
+}
+
+output "apisix_client_resource_moderate_api" {
+  value = local.apisix_client_resource_moderate_api
 }

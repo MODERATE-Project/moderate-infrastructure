@@ -28,17 +28,7 @@ import requests
 
 _logger = logging.getLogger(__name__)
 
-_APISIX_CLIENT_PROPS = {
-    "name": "APISIX Gateway",
-    "publicClient": False,
-    "serviceAccountsEnabled": True,
-    "standardFlowEnabled": True,
-    "directAccessGrantsEnabled": True,
-    "implicitFlowEnabled": False,
-    "fullScopeAllowed": True,
-    "alwaysDisplayInConsole": True,
-    "authorizationServicesEnabled": True,
-}
+_APISIX_RESOURCES_DEFAULT_TYPE = "urn:apisix:resources:default"
 
 _VARIABLES = [
     ("KEYCLOAK_URL", "https://keycloak.moderate.cloud", str),
@@ -47,9 +37,76 @@ _VARIABLES = [
     ("MODERATE_REALM", "moderate", str),
     ("APISIX_CLIENT_ID", "apisix", str),
     ("APISIX_CLIENT_SECRET", None, str),
+    ("APISIX_CLIENT_RESOURCE_YATAI", "yatai", str),
+    ("APISIX_CLIENT_RESOURCE_MODERATE_API", "moderateapi", str),
 ]
 
 Config = collections.namedtuple("Config", [item.lower() for item, _, _ in _VARIABLES])
+
+
+def build_apisix_client_props(config: Config) -> dict:
+    return {
+        "name": "APISIX Gateway",
+        "publicClient": False,
+        "serviceAccountsEnabled": True,
+        "standardFlowEnabled": True,
+        "directAccessGrantsEnabled": True,
+        "implicitFlowEnabled": False,
+        "fullScopeAllowed": True,
+        "alwaysDisplayInConsole": True,
+        "authorizationServicesEnabled": True,
+        "authorizationSettings": {
+            "allowRemoteResourceManagement": True,
+            "policyEnforcementMode": "ENFORCING",
+            "resources": [
+                {
+                    "name": "Default Resource",
+                    "type": _APISIX_RESOURCES_DEFAULT_TYPE,
+                    "ownerManagedAccess": False,
+                    "uris": ["/*"],
+                },
+                {
+                    "name": config.apisix_client_resource_yatai,
+                    "type": _APISIX_RESOURCES_DEFAULT_TYPE,
+                    "ownerManagedAccess": True,
+                    "displayName": "Yatai Inference APIs",
+                    "uris": ["/*"],
+                },
+                {
+                    "name": config.apisix_client_resource_moderate_api,
+                    "type": _APISIX_RESOURCES_DEFAULT_TYPE,
+                    "ownerManagedAccess": True,
+                    "displayName": "MODERATE HTTP API",
+                    "uris": ["/*"],
+                },
+            ],
+            "policies": [
+                {
+                    "name": "Default Policy",
+                    "description": "A policy that grants access only for users within this realm",
+                    "type": "js",
+                    "logic": "POSITIVE",
+                    "decisionStrategy": "AFFIRMATIVE",
+                    "config": {
+                        "code": "// by default, grants any permission associated with this policy\n$evaluation.grant();\n"
+                    },
+                },
+                {
+                    "name": "Default Permission",
+                    "description": "A permission that applies to the default resource type",
+                    "type": "resource",
+                    "logic": "POSITIVE",
+                    "decisionStrategy": "UNANIMOUS",
+                    "config": {
+                        "defaultResourceType": _APISIX_RESOURCES_DEFAULT_TYPE,
+                        "applyPolicies": '["Default Policy"]',
+                    },
+                },
+            ],
+            "scopes": [],
+            "decisionStrategy": "UNANIMOUS",
+        },
+    }
 
 
 def join_url_parts(*args: List[str]) -> str:
@@ -126,6 +183,7 @@ def get_client(
     response = requests.get(url, headers=headers)
     response.raise_for_status()
     clients = response.json()
+    _logger.debug("Found clients:\n%s", pprint.pformat(clients))
 
     return next(item for item in clients if item["clientId"] == client_id)
 
@@ -146,6 +204,8 @@ def create_client(
         "protocol": "openid-connect",
         **client_props,
     }
+
+    _logger.debug("POSTing client data:\n%s", pprint.pformat(client_data))
 
     url = join_url_parts(config.keycloak_url, "admin/realms", realm_name, "clients")
     response = requests.post(url, json=client_data, headers=headers)
@@ -190,7 +250,7 @@ def create_apisix_client(config: Config, admin_token: str):
         _logger.info("Client %s does not exist, creating...", config.apisix_client_id)
 
         apisix_client_props = {
-            **_APISIX_CLIENT_PROPS,
+            **build_apisix_client_props(config=config),
             **{"secret": config.apisix_client_secret},
         }
 

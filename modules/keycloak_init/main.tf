@@ -1,9 +1,10 @@
 locals {
-  script_name                    = "main.py"
-  vol_name                       = "vol-script"
-  moderate_realm                 = "moderate"
-  apisix_client_id               = "apisix"
-  apisix_client_default_resource = "Default Resource"
+  script_name                         = "main.py"
+  vol_name                            = "vol-script"
+  moderate_realm                      = "moderate"
+  apisix_client_id                    = "apisix"
+  apisix_client_resource_yatai        = "yatai"
+  apisix_client_resource_moderate_api = "moderateapi"
 }
 
 resource "random_password" "apisix_client_secret" {
@@ -17,12 +18,14 @@ resource "kubernetes_secret" "keycloak_init" {
   }
 
   data = {
-    KEYCLOAK_URL         = var.keycloak_url
-    KEYCLOAK_ADMIN_USER  = var.keycloak_admin_user
-    KEYCLOAK_ADMIN_PASS  = var.keycloak_admin_pass
-    MODERATE_REALM       = local.moderate_realm
-    APISIX_CLIENT_ID     = local.apisix_client_id
-    APISIX_CLIENT_SECRET = random_password.apisix_client_secret.result
+    KEYCLOAK_URL                        = var.keycloak_url
+    KEYCLOAK_ADMIN_USER                 = var.keycloak_admin_user
+    KEYCLOAK_ADMIN_PASS                 = var.keycloak_admin_pass
+    MODERATE_REALM                      = local.moderate_realm
+    APISIX_CLIENT_ID                    = local.apisix_client_id
+    APISIX_CLIENT_SECRET                = random_password.apisix_client_secret.result
+    APISIX_CLIENT_RESOURCE_YATAI        = local.apisix_client_resource_yatai
+    APISIX_CLIENT_RESOURCE_MODERATE_API = local.apisix_client_resource_moderate_api
   }
 }
 

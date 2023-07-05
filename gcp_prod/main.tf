@@ -163,7 +163,7 @@ module "apisix" {
   keycloak_realm             = module.keycloak_init.moderate_realm_name
   keycloak_client_id         = module.keycloak_init.apisix_client_id
   keycloak_client_secret     = module.keycloak_init.apisix_client_secret
-  keycloak_permissions_yatai = module.keycloak_init.apisix_client_default_resource
+  keycloak_permissions_yatai = module.keycloak_init.apisix_client_resource_yatai
 }
 
 module "timescale" {
