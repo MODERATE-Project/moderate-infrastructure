@@ -161,36 +161,31 @@ def create_client(
     return get_client(**get_client_kwargs)
 
 
-def main():
-    _logger.info("Initializing Keycloak entities")
-
-    config = get_config()
-    admin_token = get_admin_token(config=config)
-
+def create_moderate_realm(config: Config, admin_token: str):
     try:
-        moderate_realm = get_realm(
+        _logger.info("Checking if realm %s exists", config.moderate_realm)
+
+        return get_realm(
             config=config, admin_token=admin_token, realm_name=config.moderate_realm
         )
-
-        _logger.info("Realm %s exists", config.moderate_realm)
     except:
         _logger.info("Realm %s does not exist, creating...", config.moderate_realm)
 
-        moderate_realm = create_realm(
+        return create_realm(
             config=config, admin_token=admin_token, realm_name=config.moderate_realm
         )
 
-    _logger.debug("MODERATE realm:\n%s", pprint.pformat(moderate_realm))
 
+def create_apisix_client(config: Config, admin_token: str):
     try:
-        apisix_client = get_client(
+        _logger.info("Checking if client %s exists", config.apisix_client_id)
+
+        return get_client(
             config=config,
             realm_name=config.moderate_realm,
             admin_token=admin_token,
             client_id=config.apisix_client_id,
         )
-
-        _logger.info("Client %s exists", config.apisix_client_id)
     except:
         _logger.info("Client %s does not exist, creating...", config.apisix_client_id)
 
@@ -199,7 +194,7 @@ def main():
             **{"secret": config.apisix_client_secret},
         }
 
-        apisix_client = create_client(
+        return create_client(
             config=config,
             realm_name=config.moderate_realm,
             admin_token=admin_token,
@@ -207,6 +202,16 @@ def main():
             client_props=apisix_client_props,
         )
 
+
+def main():
+    _logger.info("Initializing Keycloak entities")
+    config = get_config()
+    admin_token = get_admin_token(config=config)
+
+    moderate_realm = create_moderate_realm(config=config, admin_token=admin_token)
+    _logger.debug("MODERATE realm:\n%s", pprint.pformat(moderate_realm))
+
+    apisix_client = create_apisix_client(config=config, admin_token=admin_token)
     _logger.debug("APISIX client:\n%s", pprint.pformat(apisix_client))
 
 
