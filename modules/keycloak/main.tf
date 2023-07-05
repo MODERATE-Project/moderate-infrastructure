@@ -96,7 +96,7 @@ resource "kubernetes_deployment" "keycloak" {
       spec {
         service_account_name = module.cloud_sql_proxy_wi.k8s_service_account_name
         container {
-          image = "quay.io/keycloak/keycloak:21.0"
+          image = "quay.io/keycloak/keycloak:21.1.2"
           name  = "keycloak"
           args = [
             "start",
