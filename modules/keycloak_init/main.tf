@@ -7,7 +7,8 @@ locals {
 }
 
 resource "random_password" "apisix_client_secret" {
-  length = 32
+  length  = 32
+  special = false
 }
 
 resource "kubernetes_secret" "keycloak_init" {
