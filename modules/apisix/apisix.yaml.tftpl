@@ -9,21 +9,45 @@ routes:
     upstream:
       type: roundrobin
       nodes:
-        "${yatai_proxy_sv}.${yatai_ns}.svc.cluster.local:80": 1
+        "${yatai_proxy_node}": 1
     plugins:
       authz-keycloak:
-        token_endpoint: https://${keycloak_subdomain}.${base_domain}/realms/${keycloak_realm}/protocol/openid-connect/token
+        token_endpoint: ${keycloak_token_endpoint}
         client_id: ${keycloak_client_id}
         client_secret: ${keycloak_client_secret}
         permissions: ["${keycloak_permissions_yatai}"]
         ssl_verify: false
+        password_grant_token_generation_incoming_uri: /api/token
+  - uri: /docs
+    host: ${host_moderate_api}
+    service_id: 1002
+  - uri: /openapi.json
+    host: ${host_moderate_api}
+    service_id: 1002
+  - uri: /*
+    host: ${host_moderate_api}
+    service_id: 1002
+    plugins:
+      authz-keycloak:
+        token_endpoint: ${keycloak_token_endpoint}
+        client_id: ${keycloak_client_id}
+        client_secret: ${keycloak_client_secret}
+        permissions: ["${keycloak_permissions_moderate_api}"]
+        ssl_verify: false
+        password_grant_token_generation_incoming_uri: /api/token
 services:
   - id: 1001
     upstream_id: 2001
+  - id: 1002
+    upstream_id: 2002
 upstreams:
   - id: 2001
     nodes:
       "docs-service.docs.svc.cluster.local:8080": 1
+    type: roundrobin
+  - id: 2002
+    nodes:
+      "${moderate_api_node}": 1
     type: roundrobin
 consumers:
   - username: docs

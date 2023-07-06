@@ -2,6 +2,7 @@ locals {
   nginx_name         = "nginx-yatai-router"
   vol_config         = "config"
   bento_service_port = 3000
+  nginx_port         = 80
 }
 
 resource "kubernetes_config_map" "nginx" {
@@ -49,7 +50,7 @@ resource "kubernetes_deployment" "nginx" {
           image = "nginx:1.23"
           name  = "nginx"
           port {
-            container_port = 80
+            container_port = local.nginx_port
           }
           resources {
             limits = {
@@ -92,8 +93,8 @@ resource "kubernetes_service" "nginx" {
       app = kubernetes_deployment.nginx.spec.0.template.0.metadata.0.labels.app
     }
     port {
-      port        = 80
-      target_port = 80
+      port        = local.nginx_port
+      target_port = local.nginx_port
     }
     type = "ClusterIP"
   }

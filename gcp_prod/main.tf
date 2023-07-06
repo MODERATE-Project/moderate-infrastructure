@@ -154,16 +154,17 @@ module "api" {
 }
 
 module "apisix" {
-  depends_on                 = [module.cert_manager]
-  source                     = "../modules/apisix"
-  base_domain                = var.base_domain
-  cert_manager_issuer        = module.cert_manager.cluster_issuer_prod_name
-  yatai_namespace            = module.yatai.namespace
-  yatai_proxy_service        = module.yatai.proxy_service_name
-  keycloak_realm             = module.keycloak_init.moderate_realm_name
-  keycloak_client_id         = module.keycloak_init.apisix_client_id
-  keycloak_client_secret     = module.keycloak_init.apisix_client_secret
-  keycloak_permissions_yatai = module.keycloak_init.apisix_client_resource_yatai
+  depends_on                        = [module.cert_manager]
+  source                            = "../modules/apisix"
+  base_domain                       = var.base_domain
+  cert_manager_issuer               = module.cert_manager.cluster_issuer_prod_name
+  yatai_proxy_node                  = module.yatai.proxy_service_host_port
+  moderate_api_node                 = module.api.api_service_host_port
+  keycloak_realm                    = module.keycloak_init.moderate_realm_name
+  keycloak_client_id                = module.keycloak_init.apisix_client_id
+  keycloak_client_secret            = module.keycloak_init.apisix_client_secret
+  keycloak_permissions_yatai        = module.keycloak_init.apisix_client_resource_yatai
+  keycloak_permissions_moderate_api = module.keycloak_init.apisix_client_resource_moderate_api
 }
 
 module "timescale" {
