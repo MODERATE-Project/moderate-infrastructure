@@ -77,7 +77,7 @@ locals {
   app_name            = "apisix"
   vol_config_readonly = "config-readonly"
   vol_config          = "config"
-  apisix_tag          = "3.2.0-debian"
+  apisix_tag          = "3.5.0-debian"
   config_yaml         = "config.yaml"
   apisix_yaml         = "apisix.yaml"
 }

@@ -1,6 +1,6 @@
 variable "ingress_nginx_chart_version" {
   type    = string
-  default = "4.5.2"
+  default = "4.7.2"
 }
 
 # Example:

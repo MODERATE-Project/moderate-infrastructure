@@ -96,7 +96,7 @@ resource "kubernetes_deployment" "keycloak" {
       spec {
         service_account_name = module.cloud_sql_proxy_wi.k8s_service_account_name
         container {
-          image = "quay.io/keycloak/keycloak:21.1.2"
+          image = "quay.io/keycloak/keycloak:22.0"
           name  = "keycloak"
           args = [
             "start",
@@ -127,7 +127,7 @@ resource "kubernetes_deployment" "keycloak" {
           }
         }
         container {
-          image = "gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.1.1"
+          image = "gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.6"
           name  = "cloudsql-proxy"
           args = [
             "--private-ip",

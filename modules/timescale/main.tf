@@ -60,7 +60,7 @@ resource "kubernetes_deployment" "timescale" {
           # The "-ha" indicates that it includes the Patroni HA controller.
           # The lack of "-oss" indicates that this is the Community version:
           # https://docs.timescale.com/about/latest/timescaledb-editions/
-          image = "timescale/timescaledb-ha:pg14.8-ts2.11.1-all"
+          image = "timescale/timescaledb-ha:pg14.9-ts2.11.2-all"
           name  = "timescale"
           port {
             container_port = local.pg_port
