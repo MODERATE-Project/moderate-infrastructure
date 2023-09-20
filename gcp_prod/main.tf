@@ -181,3 +181,15 @@ module "geoserver" {
   domain              = var.domain_geoserver
   cert_manager_issuer = module.cert_manager.cluster_issuer_prod_name
 }
+
+# module "dagster" {
+#   depends_on              = [module.cert_manager]
+#   source                  = "../modules/dagster"
+#   domain                  = var.domain_dagster
+#   cloud_sql_instance_name = module.postgres_cloud_sql.sql_instance_name
+#   postgres_host           = module.postgres_cloud_sql_proxy.cloud_sql_proxy_service
+#   keycloak_admin_user     = module.keycloak.keycloak_admin_user
+#   keycloak_admin_pass     = module.keycloak.keycloak_admin_pass
+#   keycloak_url            = "http://${module.keycloak.keycloak_service_host_port}"
+#   cert_manager_issuer     = module.cert_manager.cluster_issuer_prod_name
+# }
