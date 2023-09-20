@@ -51,3 +51,9 @@ variable "cert_manager_issuer" {
   type        = string
   description = "cert-manager issuer to use for the Dagster web UI"
 }
+
+variable "ingress_enabled" {
+  type        = bool
+  default     = false
+  description = "Whether to enable ingress for the Dagster web UI"
+}

@@ -52,7 +52,7 @@ resource "kubernetes_secret" "dagster_secrets" {
 locals {
   dagster_config = {
     "ingress" = {
-      "enabled"          = true
+      "enabled"          = var.ingress_enabled
       "ingressClassName" = "nginx"
       "annotations" : {
         "cert-manager.io/cluster-issuer" = var.cert_manager_issuer
