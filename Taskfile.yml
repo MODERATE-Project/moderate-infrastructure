@@ -1,0 +1,37 @@
+version: "3"
+
+vars:
+  PROJECT_ID: moderate-prod
+  REGION: europe-west1-b
+
+tasks:
+  get-credentials:
+    desc: Configure kubectl with credentials for the GKE cluster
+    cmds:
+      - >
+        gcloud container clusters get-credentials gke-cluster 
+        --region {{.REGION}} 
+        --project {{.PROJECT_ID}}
+
+  update-dns:
+    desc: Update DNS records to point to the cluster load balancer
+    deps:
+      - get-credentials
+    dir: "{{.ROOT_DIR}}/scripts"
+    cmds:
+      - ./update-dns.sh
+
+  apply-prod:
+    desc: Apply Terraform configuration for the "production" GCP project
+    dir: "{{.ROOT_DIR}}/gcp_prod"
+    cmds:
+      - terraform init
+      - terraform apply
+      - task: get-credentials
+      - task: update-dns
+
+  destroy-prod:
+    desc: Destroy Terraform configuration for the "production" GCP project
+    dir: "{{.ROOT_DIR}}/gcp_prod"
+    cmds:
+      - terraform destroy

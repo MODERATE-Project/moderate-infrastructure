@@ -16,18 +16,17 @@ Additionally, you must log in to Terraform Cloud using the [Terraform CLI](https
 terraform login
 ```
 
-## Manual DNS update
+## Usage
 
-Please note that the deployment process for this project involves a manual step: you will need to add an A DNS record for each Ingress resource, pointing to the public IP address of the NGINX controller.
+To deploy the infrastructure, you may run the following command:
 
-To do this, you will need to obtain the public IP address of the NGINX controller. First, you may need to get the GKE cluster credentials for your local terminal:
-
-```
-gcloud container clusters get-credentials gke-cluster --region <cluster_region> --project <cluster_project_id>
+```console
+terraform apply-prod
 ```
 
-This will configure `kubectl` to access the cluster. Now you can get the public IP of the NGINX controller with the following command:
+This will do the following:
 
-```
-kubectl get service/ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
-```
+* Initialize the Terraform workspace.
+* Apply the Terraform configuration to the cloud provider.
+* Fetch the credentials for the Kubernetes cluster and configure the local `kubectl` client.
+* Update the DNS records to point to the Kubernetes cluster.
