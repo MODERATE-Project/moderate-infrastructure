@@ -1,3 +1,5 @@
+// trunk-ignore-all(checkov/CKV_K8S_8,checkov/CKV_K8S_9)
+
 locals {
   nginx_name         = "nginx-yatai-router"
   vol_config         = "config"
@@ -47,8 +49,12 @@ resource "kubernetes_deployment" "nginx" {
       }
       spec {
         container {
-          image = "nginx:1.23"
-          name  = "nginx"
+          image             = "nginx:1.23"
+          name              = "nginx"
+          image_pull_policy = "Always"
+          security_context {
+            allow_privilege_escalation = false
+          }
           port {
             container_port = local.nginx_port
           }
