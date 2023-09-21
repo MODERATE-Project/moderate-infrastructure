@@ -21,7 +21,7 @@ terraform login
 To deploy the infrastructure, you may run the following command:
 
 ```console
-terraform apply-prod
+task apply-prod
 ```
 
 This will do the following:
