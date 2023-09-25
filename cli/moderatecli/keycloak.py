@@ -1,47 +1,26 @@
-# Install package requirements
-
-import subprocess
-import sys
-
-_REQUIREMENTS = ["coloredlogs==15.0.1", "requests==2.31.0"]
-
-
-def install(package):
-    print("Installing", package)
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "-U", package])
-
-
-for package in _REQUIREMENTS:
-    install(package)
-
-# Create the Keycloak entities if necessary (e.g. realms, clients)
-
-import collections
 import logging
-import os
 import pprint
-import sys
+from dataclasses import dataclass
 from typing import List
 
-import coloredlogs
 import requests
+
+_APISIX_RESOURCES_DEFAULT_TYPE = "urn:apisix:resources:default"
+_REQUESTS_TIMEOUT = 90
 
 _logger = logging.getLogger(__name__)
 
-_APISIX_RESOURCES_DEFAULT_TYPE = "urn:apisix:resources:default"
 
-_VARIABLES = [
-    ("KEYCLOAK_URL", "https://keycloak.moderate.cloud", str),
-    ("KEYCLOAK_ADMIN_USER", "admin", str),
-    ("KEYCLOAK_ADMIN_PASS", None, str),
-    ("MODERATE_REALM", "moderate", str),
-    ("APISIX_CLIENT_ID", "apisix", str),
-    ("APISIX_CLIENT_SECRET", None, str),
-    ("APISIX_CLIENT_RESOURCE_YATAI", "yatai", str),
-    ("APISIX_CLIENT_RESOURCE_MODERATE_API", "moderateapi", str),
-]
-
-Config = collections.namedtuple("Config", [item.lower() for item, _, _ in _VARIABLES])
+@dataclass
+class Config:
+    keycloak_url: str
+    keycloak_admin_user: str
+    keycloak_admin_pass: str
+    moderate_realm: str
+    apisix_client_id: str
+    apisix_client_secret: str
+    apisix_client_resource_yatai: str
+    apisix_client_resource_moderate_api: str
 
 
 def build_apisix_client_props(config: Config) -> dict:
@@ -113,17 +92,6 @@ def join_url_parts(*args: List[str]) -> str:
     return "/".join(map(lambda x: str(x).rstrip("/"), args))
 
 
-def get_config() -> Config:
-    config_kwargs = {
-        key.lower(): converter(os.getenv(key, default))
-        if converter
-        else os.getenv(key, default)
-        for key, default, converter in _VARIABLES
-    }
-
-    return Config(**config_kwargs)
-
-
 def build_headers(admin_token: str) -> dict:
     return {
         "Authorization": f"Bearer {admin_token}",
@@ -143,7 +111,7 @@ def get_admin_token(config: Config) -> str:
         "password": config.keycloak_admin_pass,
     }
 
-    response = requests.post(token_url, data=token_data)
+    response = requests.post(token_url, data=token_data, timeout=_REQUESTS_TIMEOUT)
     access_token = response.json()["access_token"]
 
     return access_token
@@ -152,7 +120,7 @@ def get_admin_token(config: Config) -> str:
 def get_realm(config: Config, admin_token: str, realm_name: str) -> dict:
     headers = build_headers(admin_token)
     url = join_url_parts(config.keycloak_url, "admin/realms", realm_name)
-    response = requests.get(url, headers=headers)
+    response = requests.get(url, headers=headers, timeout=_REQUESTS_TIMEOUT)
     response.raise_for_status()
 
     return response.json()
@@ -169,7 +137,11 @@ def create_realm(config: Config, admin_token: str, realm_name: str) -> dict:
     }
 
     url = join_url_parts(config.keycloak_url, "admin/realms")
-    response = requests.post(url, json=realm_data, headers=headers)
+
+    response = requests.post(
+        url, json=realm_data, headers=headers, timeout=_REQUESTS_TIMEOUT
+    )
+
     response.raise_for_status()
 
     return get_realm(config=config, admin_token=admin_token, realm_name=realm_name)
@@ -180,7 +152,7 @@ def get_client(
 ) -> dict:
     headers = build_headers(admin_token)
     url = join_url_parts(config.keycloak_url, "admin/realms", realm_name, "clients")
-    response = requests.get(url, headers=headers)
+    response = requests.get(url, headers=headers, timeout=_REQUESTS_TIMEOUT)
     response.raise_for_status()
     clients = response.json()
     _logger.debug("Found clients:\n%s", pprint.pformat(clients))
@@ -208,7 +180,11 @@ def create_client(
     _logger.debug("POSTing client data:\n%s", pprint.pformat(client_data))
 
     url = join_url_parts(config.keycloak_url, "admin/realms", realm_name, "clients")
-    response = requests.post(url, json=client_data, headers=headers)
+
+    response = requests.post(
+        url, json=client_data, headers=headers, timeout=_REQUESTS_TIMEOUT
+    )
+
     response.raise_for_status()
 
     get_client_kwargs = {
@@ -228,7 +204,7 @@ def create_moderate_realm(config: Config, admin_token: str):
         return get_realm(
             config=config, admin_token=admin_token, realm_name=config.moderate_realm
         )
-    except:
+    except Exception:
         _logger.info("Realm %s does not exist, creating...", config.moderate_realm)
 
         return create_realm(
@@ -246,7 +222,7 @@ def create_apisix_client(config: Config, admin_token: str):
             admin_token=admin_token,
             client_id=config.apisix_client_id,
         )
-    except:
+    except Exception:
         _logger.info("Client %s does not exist, creating...", config.apisix_client_id)
 
         apisix_client_props = {
@@ -263,9 +239,31 @@ def create_apisix_client(config: Config, admin_token: str):
         )
 
 
-def main():
+def create_keycloak_entities(
+    keycloak_url: str,
+    keycloak_admin_user: str,
+    keycloak_admin_pass: str,
+    moderate_realm: str,
+    apisix_client_id: str,
+    apisix_client_secret: str,
+    apisix_client_resource_yatai: str,
+    apisix_client_resource_moderate_api: str,
+):
+    """Create Keycloak entities."""
+
     _logger.info("Initializing Keycloak entities")
-    config = get_config()
+
+    config = Config(
+        keycloak_url=keycloak_url,
+        keycloak_admin_user=keycloak_admin_user,
+        keycloak_admin_pass=keycloak_admin_pass,
+        moderate_realm=moderate_realm,
+        apisix_client_id=apisix_client_id,
+        apisix_client_secret=apisix_client_secret,
+        apisix_client_resource_yatai=apisix_client_resource_yatai,
+        apisix_client_resource_moderate_api=apisix_client_resource_moderate_api,
+    )
+
     admin_token = get_admin_token(config=config)
 
     moderate_realm = create_moderate_realm(config=config, admin_token=admin_token)
@@ -273,13 +271,3 @@ def main():
 
     apisix_client = create_apisix_client(config=config, admin_token=admin_token)
     _logger.debug("APISIX client:\n%s", pprint.pformat(apisix_client))
-
-
-if __name__ == "__main__":
-    coloredlogs.install(level=os.getenv("LOG_LEVEL", "INFO"))
-
-    try:
-        main()
-    except:
-        _logger.error("Critical error", exc_info=True)
-        sys.exit(1)

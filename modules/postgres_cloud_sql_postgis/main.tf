@@ -29,20 +29,6 @@ resource "kubernetes_secret" "enable_postgis" {
   }
 }
 
-locals {
-  script_name = "main.py"
-}
-
-resource "kubernetes_config_map" "enable_postgis" {
-  metadata {
-    name = "config-enable-postgis"
-  }
-
-  data = {
-    "${local.script_name}" = file("${path.module}/main.py")
-  }
-}
-
 resource "kubernetes_job_v1" "enable_postgis" {
   metadata {
     name = "enable-postgis"
@@ -59,27 +45,16 @@ resource "kubernetes_job_v1" "enable_postgis" {
       }
       spec {
         container {
-          name    = "enable-postgis"
-          image   = "python:3.10-bullseye"
-          command = ["python", "/${local.script_name}"]
+          name              = "enable-postgis"
+          image             = "docker.io/agmangas/moderate-cli:latest"
+          image_pull_policy = "Always"
+          command = [
+            "moderatecli",
+            "enable-postgis"
+          ]
           env_from {
             secret_ref {
               name = kubernetes_secret.enable_postgis.metadata[0].name
-            }
-          }
-          volume_mount {
-            name       = "vol-script"
-            mount_path = "/${local.script_name}"
-            sub_path   = local.script_name
-          }
-        }
-        volume {
-          name = "vol-script"
-          config_map {
-            name = kubernetes_config_map.enable_postgis.metadata[0].name
-            items {
-              key  = local.script_name
-              path = local.script_name
             }
           }
         }

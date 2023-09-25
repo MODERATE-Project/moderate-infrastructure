@@ -30,3 +30,15 @@ This will do the following:
 * Apply the Terraform configuration to the cloud provider.
 * Fetch the credentials for the Kubernetes cluster and configure the local `kubectl` client.
 * Update the DNS records to point to the Kubernetes cluster.
+
+### About the MODERATE CLI image
+
+The [MODERATE CLI](./cli) is a utility to interact programmatically with the MODERATE infrastructure. Its main objective is to contain the logic necessary to automatically initialize some services that require configuration that cannot be achieved through Terraform alone. For example, the MODERATE CLI is used to create the initial realm in Keycloak.
+
+The image needs to be built locally and pushed to a public registry for the Kubernetes Jobs that are defined in the Terraform configuration to be able to pull it. To build and push the image, run the following command:
+
+```console
+task push-cli-image
+```
+
+By default the image is published in Docker Hub under the [`agmangas/moderate-cli`](https://hub.docker.com/r/agmangas/moderate-cli) repository. However, this can be configured in the `Taskfile.yml` file.

@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "moderatecli"
+version = "0.1.0"
+description = "CLI of the MODERATE platform"
+authors = ["Andres Garcia Mangas <andres.garcia@fundacionctic.org>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.8"
+typer = { extras = ["all"], version = "^0.9.0" }
+requests = "^2.31.0"
+coloredlogs = "^15.0.1"
+psycopg = { extras = ["binary"], version = "^3.1.11" }
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+moderatecli = "moderatecli.main:main"

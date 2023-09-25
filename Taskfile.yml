@@ -3,6 +3,10 @@ version: "3"
 vars:
   PROJECT_ID: moderate-prod
   REGION: europe-west1-b
+  CLI_IMAGE_LOCAL_NAME: moderate-cli
+  CLI_IMAGE_REMOTE_NAME: agmangas/moderate-cli
+  CLI_IMAGE_REMOTE_TAG:
+    sh: git rev-parse HEAD | head -c 10
 
 tasks:
   get-credentials:
@@ -35,3 +39,13 @@ tasks:
     dir: "{{.ROOT_DIR}}/gcp_prod"
     cmds:
       - terraform destroy
+
+  push-cli-image:
+    desc: Build and push the MODERATE CLI image to the public registry
+    cmds:
+      - >
+        docker buildx build --platform=linux/amd64 -t {{.CLI_IMAGE_LOCAL_NAME}} {{.ROOT_DIR}}/cli
+      - docker tag {{.CLI_IMAGE_LOCAL_NAME}} {{.CLI_IMAGE_REMOTE_NAME}}:{{.CLI_IMAGE_REMOTE_TAG}}
+      - docker tag {{.CLI_IMAGE_LOCAL_NAME}} {{.CLI_IMAGE_REMOTE_NAME}}:latest
+      - docker push {{.CLI_IMAGE_REMOTE_NAME}}:{{.CLI_IMAGE_REMOTE_TAG}}
+      - docker push {{.CLI_IMAGE_REMOTE_NAME}}:latest
