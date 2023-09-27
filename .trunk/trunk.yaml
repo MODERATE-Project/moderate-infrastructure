@@ -4,7 +4,7 @@ cli:
 plugins:
   sources:
     - id: trunk
-      ref: v1.2.3
+      ref: v1.2.4
       uri: https://github.com/trunk-io/plugins
 runtimes:
   enabled:
@@ -12,9 +12,17 @@ runtimes:
     - node@18.12.1
     - python@3.10.8
 lint:
+  ignore:
+    - linters: [ALL]
+      paths:
+        - "**/*"
+        - "!modules/**/*.tf"
   definitions:
-    # Adapted from:
     # https://github.com/trunk-io/plugins/blob/main/linters/checkov/plugin.yaml
+    # CKV_K8S_22: Use read-only filesystem for containers where possible
+    # CKV_K8S_28: Minimize the admission of containers with the NET_RAW capability
+    # CKV_K8S_43: Image should use digest
+    # CKV_TF_1: Ensure Terraform module sources use a commit hash
     - name: checkov
       commands:
         - name: lint
@@ -28,22 +36,45 @@ lint:
           success_codes: [0, 1]
           read_output_from: tmp_file
           is_security: true
+    # https://github.com/trunk-io/plugins/blob/main/linters/terrascan/plugin.yaml
+    # AC-K8-NS-PO-M-0122: Apply Security Context to Your Pods and Containers
+    - name: terrascan
+      commands:
+        - name: lint
+          output: sarif
+          is_security: true
+          run: >
+            terrascan scan 
+            --skip-rules="AC-K8-NS-PO-M-0122"
+            -i terraform
+            --iac-file ${target}
+            --output sarif
+          read_output_from: stdout
+          files: [terraform]
+          success_codes: [0, 3, 4, 5]
+          parser:
+            runtime: python
+            run: python3 ${plugin}/linters/terrascan/sarif_to_sarif.py
   enabled:
+    - hadolint@2.12.0
+    - osv-scanner@1.4.0
+    - taplo@0.8.1
+    - yamllint@1.32.0
     - bandit@1.7.5
     - black@23.9.1
     - checkov@2.4.9
     - git-diff-check
     - isort@5.12.0
-    - markdownlint@0.36.0
+    - markdownlint@0.37.0
     - prettier@3.0.3
-    - ruff@0.0.289
+    - ruff@0.0.291
     - shellcheck@0.9.0
     - shfmt@3.6.0
     - terrascan@1.18.3
     - tflint@0.48.0
     - tfsec@1.28.4
-    - trivy@0.45.0
-    - trufflehog@3.55.1
+    - trivy@0.45.1
+    - trufflehog@3.57.0
 actions:
   disabled:
     - trunk-announce
