@@ -7,9 +7,10 @@ resource "kubernetes_namespace" "mongo" {
 }
 
 locals {
-  app_name   = "mongo-app"
-  namespace  = var.namespace == null ? one(kubernetes_namespace.mongo[*].id) : var.namespace
-  mongo_port = 27017
+  app_name         = "mongo-app"
+  namespace        = var.namespace == null ? one(kubernetes_namespace.mongo[*].id) : var.namespace
+  mongo_port       = 27017
+  mongo_admin_user = "admin"
 }
 
 resource "kubernetes_persistent_volume_claim" "mongo_pvc" {
@@ -28,7 +29,11 @@ resource "kubernetes_persistent_volume_claim" "mongo_pvc" {
   wait_until_bound = false
 }
 
-// trunk-ignore(terrascan/AC_K8S_0064)
+resource "random_password" "mongo_admin_password" {
+  length  = 24
+  special = false
+}
+
 resource "kubernetes_deployment" "mongo" {
   metadata {
     name      = "mongo-deployment"
@@ -73,6 +78,14 @@ resource "kubernetes_deployment" "mongo" {
               cpu    = "1000m"
               memory = "2048Mi"
             }
+          }
+          env {
+            name  = "MONGO_INITDB_ROOT_USERNAME"
+            value = local.mongo_admin_user
+          }
+          env {
+            name  = "MONGO_INITDB_ROOT_PASSWORD"
+            value = random_password.mongo_admin_password.result
           }
           liveness_probe {
             exec {
