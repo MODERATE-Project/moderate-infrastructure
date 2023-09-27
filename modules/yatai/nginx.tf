@@ -1,5 +1,3 @@
-// trunk-ignore-all(checkov/CKV_K8S_8,checkov/CKV_K8S_9)
-
 locals {
   nginx_name         = "nginx-yatai-router"
   vol_config         = "config"
