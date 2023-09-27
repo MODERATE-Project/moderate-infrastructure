@@ -194,3 +194,8 @@ module "dagster" {
   keycloak_url            = "http://${module.keycloak.keycloak_service_host_port}"
   cert_manager_issuer     = module.cert_manager.cluster_issuer_prod_name
 }
+
+module "mongo" {
+  depends_on = [module.cert_manager]
+  source     = "../modules/mongo"
+}
