@@ -1,10 +1,11 @@
 import os
 
 import coloredlogs
-import moderatecli.keycloak
-import moderatecli.postgis
 import typer
 from typing_extensions import Annotated
+
+import moderatecli.keycloak
+import moderatecli.postgis
 
 app = typer.Typer()
 
@@ -22,6 +23,12 @@ def enable_postgis(
 def create_keycloak_entities(
     keycloak_admin_pass: Annotated[str, typer.Argument(envvar="KEYCLOAK_ADMIN_PASS")],
     apisix_client_secret: Annotated[str, typer.Argument(envvar="APISIX_CLIENT_SECRET")],
+    open_metadata_client_secret: Annotated[
+        str, typer.Argument(envvar="OPEN_METADATA_CLIENT_SECRET")
+    ],
+    open_metadata_root_url: Annotated[
+        str, typer.Argument(envvar="OPEN_METADATA_ROOT_URL")
+    ],
     keycloak_url: Annotated[
         str, typer.Argument(envvar="KEYCLOAK_URL")
     ] = "https://keycloak.moderate.cloud",
@@ -40,6 +47,9 @@ def create_keycloak_entities(
     apisix_client_resource_moderate_api: Annotated[
         str, typer.Argument(envvar="APISIX_CLIENT_RESOURCE_MODERATE_API")
     ] = "moderateapi",
+    open_metadata_client_id: Annotated[
+        str, typer.Argument(envvar="OPEN_METADATA_CLIENT_ID")
+    ] = "openmetadata",
 ):
     """Create Keycloak entities."""
 
@@ -52,6 +62,9 @@ def create_keycloak_entities(
         apisix_client_secret=apisix_client_secret,
         apisix_client_resource_yatai=apisix_client_resource_yatai,
         apisix_client_resource_moderate_api=apisix_client_resource_moderate_api,
+        open_metadata_client_id=open_metadata_client_id,
+        open_metadata_client_secret=open_metadata_client_secret,
+        open_metadata_root_url=open_metadata_root_url,
     )
 
 

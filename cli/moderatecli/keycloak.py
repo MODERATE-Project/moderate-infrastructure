@@ -1,5 +1,6 @@
 import logging
 import pprint
+import time
 from dataclasses import dataclass
 from typing import List
 
@@ -21,6 +22,98 @@ class Config:
     apisix_client_secret: str
     apisix_client_resource_yatai: str
     apisix_client_resource_moderate_api: str
+    open_metadata_client_id: str
+    open_metadata_client_secret: str
+    open_metadata_root_url: str
+
+
+def build_open_metadata_client_props(
+    client_id: str, client_secret: str, root_url: str, name: str = "Open Metadata"
+) -> dict:
+    return {
+        "clientId": client_id,
+        "name": name,
+        "description": "",
+        "rootUrl": root_url,
+        "adminUrl": root_url,
+        "baseUrl": "",
+        "surrogateAuthRequired": False,
+        "enabled": True,
+        "alwaysDisplayInConsole": False,
+        "clientAuthenticatorType": "client-secret",
+        "secret": client_secret,
+        "redirectUris": [f"{root_url}/*"],
+        "webOrigins": [root_url],
+        "notBefore": 0,
+        "bearerOnly": False,
+        "consentRequired": False,
+        "standardFlowEnabled": True,
+        "implicitFlowEnabled": True,
+        "directAccessGrantsEnabled": True,
+        "serviceAccountsEnabled": True,
+        "publicClient": False,
+        "frontchannelLogout": True,
+        "protocol": "openid-connect",
+        "attributes": {
+            "oidc.ciba.grant.enabled": False,
+            "oauth2.device.authorization.grant.enabled": False,
+            "client.secret.creation.time": int(time.time()),
+            "backchannel.logout.session.required": True,
+            "backchannel.logout.revoke.offline.tokens": False,
+        },
+        "authenticationFlowBindingOverrides": {},
+        "fullScopeAllowed": True,
+        "nodeReRegistrationTimeout": -1,
+        "protocolMappers": [
+            {
+                "name": "Client ID",
+                "protocol": "openid-connect",
+                "protocolMapper": "oidc-usersessionmodel-note-mapper",
+                "consentRequired": False,
+                "config": {
+                    "user.session.note": "client_id",
+                    "id.token.claim": True,
+                    "access.token.claim": True,
+                    "claim.name": "client_id",
+                    "jsonType.label": "String",
+                },
+            },
+            {
+                "name": "Client IP Address",
+                "protocol": "openid-connect",
+                "protocolMapper": "oidc-usersessionmodel-note-mapper",
+                "consentRequired": False,
+                "config": {
+                    "user.session.note": "clientAddress",
+                    "id.token.claim": True,
+                    "access.token.claim": True,
+                    "claim.name": "clientAddress",
+                    "jsonType.label": "String",
+                },
+            },
+            {
+                "name": "Client Host",
+                "protocol": "openid-connect",
+                "protocolMapper": "oidc-usersessionmodel-note-mapper",
+                "consentRequired": False,
+                "config": {
+                    "user.session.note": "clientHost",
+                    "id.token.claim": True,
+                    "access.token.claim": True,
+                    "claim.name": "clientHost",
+                    "jsonType.label": "String",
+                },
+            },
+        ],
+        "defaultClientScopes": ["web-origins", "acr", "roles", "profile", "email"],
+        "optionalClientScopes": [
+            "address",
+            "phone",
+            "offline_access",
+            "microprofile-jwt",
+        ],
+        "access": {"view": True, "configure": True, "manage": True},
+    }
 
 
 def build_apisix_client_props(config: Config) -> dict:
@@ -212,31 +305,57 @@ def create_moderate_realm(config: Config, admin_token: str):
         )
 
 
-def create_apisix_client(config: Config, admin_token: str):
+def _create_client(
+    client_id: str, client_props: dict, config: Config, admin_token: str
+) -> dict:
     try:
-        _logger.info("Checking if client %s exists", config.apisix_client_id)
+        _logger.info("Checking if client %s exists", client_id)
 
         return get_client(
             config=config,
             realm_name=config.moderate_realm,
             admin_token=admin_token,
-            client_id=config.apisix_client_id,
+            client_id=client_id,
         )
     except Exception:
-        _logger.info("Client %s does not exist, creating...", config.apisix_client_id)
-
-        apisix_client_props = {
-            **build_apisix_client_props(config=config),
-            **{"secret": config.apisix_client_secret},
-        }
+        _logger.info("Client %s does not exist, creating...", client_id)
 
         return create_client(
             config=config,
             realm_name=config.moderate_realm,
             admin_token=admin_token,
-            client_id=config.apisix_client_id,
-            client_props=apisix_client_props,
+            client_id=client_id,
+            client_props=client_props,
         )
+
+
+def create_apisix_client(config: Config, admin_token: str) -> dict:
+    client_props = {
+        **build_apisix_client_props(config=config),
+        **{"secret": config.apisix_client_secret},
+    }
+
+    return _create_client(
+        client_id=config.apisix_client_id,
+        client_props=client_props,
+        config=config,
+        admin_token=admin_token,
+    )
+
+
+def create_open_metadata_client(config: Config, admin_token: str) -> dict:
+    client_props = build_open_metadata_client_props(
+        client_id=config.open_metadata_client_id,
+        client_secret=config.open_metadata_client_secret,
+        root_url=config.open_metadata_root_url,
+    )
+
+    return _create_client(
+        client_id=config.open_metadata_client_id,
+        client_props=client_props,
+        config=config,
+        admin_token=admin_token,
+    )
 
 
 def create_keycloak_entities(
@@ -248,6 +367,9 @@ def create_keycloak_entities(
     apisix_client_secret: str,
     apisix_client_resource_yatai: str,
     apisix_client_resource_moderate_api: str,
+    open_metadata_client_id: str,
+    open_metadata_client_secret: str,
+    open_metadata_root_url: str,
 ):
     """Create Keycloak entities."""
 
@@ -262,6 +384,9 @@ def create_keycloak_entities(
         apisix_client_secret=apisix_client_secret,
         apisix_client_resource_yatai=apisix_client_resource_yatai,
         apisix_client_resource_moderate_api=apisix_client_resource_moderate_api,
+        open_metadata_client_id=open_metadata_client_id,
+        open_metadata_client_secret=open_metadata_client_secret,
+        open_metadata_root_url=open_metadata_root_url,
     )
 
     admin_token = get_admin_token(config=config)
@@ -271,3 +396,6 @@ def create_keycloak_entities(
 
     apisix_client = create_apisix_client(config=config, admin_token=admin_token)
     _logger.debug("APISIX client:\n%s", pprint.pformat(apisix_client))
+
+    om_client = create_open_metadata_client(config=config, admin_token=admin_token)
+    _logger.debug("Open Metadata client:\n%s", pprint.pformat(om_client))
