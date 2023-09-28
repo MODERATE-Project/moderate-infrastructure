@@ -1,4 +1,13 @@
+resource "kubernetes_namespace" "keycloak_init" {
+  count = var.namespace == null ? 1 : 0
+  metadata {
+    annotations = { name = "keycloak-init-job" }
+    name        = "keycloak-init-job"
+  }
+}
+
 locals {
+  namespace                           = var.namespace == null ? one(kubernetes_namespace.keycloak_init[*].id) : var.namespace
   vol_name                            = "vol-moderatecli"
   moderate_realm                      = "moderate"
   apisix_client_id                    = "apisix"
@@ -13,7 +22,8 @@ resource "random_password" "apisix_client_secret" {
 
 resource "kubernetes_secret" "keycloak_init" {
   metadata {
-    name = "secrets-keycloak-init"
+    name      = "secrets-keycloak-init"
+    namespace = local.namespace
   }
 
   data = {
@@ -30,7 +40,8 @@ resource "kubernetes_secret" "keycloak_init" {
 
 resource "kubernetes_job_v1" "keycloak_init" {
   metadata {
-    name = "keycloak-init"
+    name      = "keycloak-init"
+    namespace = local.namespace
   }
 
   wait_for_completion = false

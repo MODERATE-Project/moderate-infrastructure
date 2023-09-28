@@ -43,8 +43,7 @@ tasks:
   push-cli-image:
     desc: Build and push the MODERATE CLI image to the public registry
     cmds:
-      - >
-        docker buildx build --platform=linux/amd64 -t {{.CLI_IMAGE_LOCAL_NAME}} {{.ROOT_DIR}}/cli
+      - docker buildx build --platform=linux/amd64 -t {{.CLI_IMAGE_LOCAL_NAME}} {{.ROOT_DIR}}/cli
       - docker tag {{.CLI_IMAGE_LOCAL_NAME}} {{.CLI_IMAGE_REMOTE_NAME}}:{{.CLI_IMAGE_REMOTE_TAG}}
       - docker tag {{.CLI_IMAGE_LOCAL_NAME}} {{.CLI_IMAGE_REMOTE_NAME}}:latest
       - docker push {{.CLI_IMAGE_REMOTE_NAME}}:{{.CLI_IMAGE_REMOTE_TAG}}

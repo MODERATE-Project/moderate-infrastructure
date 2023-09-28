@@ -20,7 +20,6 @@ resource "kubernetes_deployment" "docs" {
     }
   }
   spec {
-    replicas = 2
     selector {
       match_labels = {
         app = local.app_name
@@ -34,8 +33,12 @@ resource "kubernetes_deployment" "docs" {
       }
       spec {
         container {
-          image = "europe-west1-docker.pkg.dev/moderate-common/moderate-images/moderate-docs:latest"
-          name  = "docs"
+          image             = "europe-west1-docker.pkg.dev/moderate-common/moderate-images/moderate-docs:latest"
+          name              = "docs"
+          image_pull_policy = "Always"
+          security_context {
+            allow_privilege_escalation = false
+          }
           port {
             container_port = 80
           }
@@ -44,6 +47,32 @@ resource "kubernetes_deployment" "docs" {
               cpu    = "100m"
               memory = "128Mi"
             }
+            limits = {
+              cpu    = "500m"
+              memory = "1Gi"
+            }
+          }
+          readiness_probe {
+            http_get {
+              path = "/"
+              port = 80
+            }
+            initial_delay_seconds = 20
+            period_seconds        = 10
+            timeout_seconds       = 10
+            success_threshold     = 1
+            failure_threshold     = 3
+          }
+          liveness_probe {
+            http_get {
+              path = "/"
+              port = 80
+            }
+            initial_delay_seconds = 20
+            period_seconds        = 10
+            timeout_seconds       = 10
+            success_threshold     = 1
+            failure_threshold     = 6
           }
         }
       }

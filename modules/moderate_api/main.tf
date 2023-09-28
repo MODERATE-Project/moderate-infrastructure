@@ -37,8 +37,12 @@ resource "kubernetes_deployment" "moderate_api" {
       }
       spec {
         container {
-          image = "europe-west1-docker.pkg.dev/moderate-common/moderate-images/moderate-api:latest"
-          name  = "api"
+          image             = "europe-west1-docker.pkg.dev/moderate-common/moderate-images/moderate-api:latest"
+          name              = "api"
+          image_pull_policy = "Always"
+          security_context {
+            allow_privilege_escalation = false
+          }
           port {
             container_port = local.api_port
           }
@@ -47,6 +51,32 @@ resource "kubernetes_deployment" "moderate_api" {
               cpu    = "100m"
               memory = "256Mi"
             }
+            limits = {
+              cpu    = "2000m"
+              memory = "4Gi"
+            }
+          }
+          readiness_probe {
+            http_get {
+              path = "/ping"
+              port = local.api_port
+            }
+            initial_delay_seconds = 10
+            period_seconds        = 10
+            timeout_seconds       = 10
+            success_threshold     = 1
+            failure_threshold     = 3
+          }
+          liveness_probe {
+            http_get {
+              path = "/ping"
+              port = local.api_port
+            }
+            initial_delay_seconds = 10
+            period_seconds        = 10
+            timeout_seconds       = 10
+            success_threshold     = 1
+            failure_threshold     = 6
           }
         }
       }

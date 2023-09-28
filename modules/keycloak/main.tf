@@ -27,6 +27,7 @@ resource "kubernetes_config_map" "keycloak" {
     KC_PROXY             = "edge"
     KC_LOG_CONSOLE_COLOR = "true"
     KC_LOG_LEVEL         = "debug"
+    KC_HEALTH_ENABLED    = "true"
   }
 }
 
@@ -96,8 +97,12 @@ resource "kubernetes_deployment" "keycloak" {
       spec {
         service_account_name = module.cloud_sql_proxy_wi.k8s_service_account_name
         container {
-          image = "quay.io/keycloak/keycloak:22.0"
-          name  = "keycloak"
+          image             = "quay.io/keycloak/keycloak:22.0"
+          name              = "keycloak"
+          image_pull_policy = "Always"
+          security_context {
+            allow_privilege_escalation = false
+          }
           args = [
             "start",
             "--hostname=${var.domain}"
@@ -125,19 +130,42 @@ resource "kubernetes_deployment" "keycloak" {
               memory = "256Mi"
             }
           }
+          liveness_probe {
+            http_get {
+              path = "/health/live"
+              port = 8080
+            }
+            initial_delay_seconds = 180
+            period_seconds        = 10
+            timeout_seconds       = 10
+            success_threshold     = 1
+            failure_threshold     = 3
+          }
+          readiness_probe {
+            http_get {
+              path = "/health/ready"
+              port = 8080
+            }
+            initial_delay_seconds = 180
+            period_seconds        = 10
+            timeout_seconds       = 10
+            success_threshold     = 1
+            failure_threshold     = 6
+          }
         }
         container {
-          image = "gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.6"
-          name  = "cloudsql-proxy"
+          image             = "gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.6"
+          name              = "cloudsql-proxy"
+          image_pull_policy = "Always"
+          security_context {
+            allow_privilege_escalation = false
+          }
           args = [
             "--private-ip",
             "--structured-logs",
             "--port=${local.postgres_port}",
             "${var.cloud_sql_instance_connection_name}"
           ]
-          security_context {
-            run_as_non_root = true
-          }
           port {
             container_port = local.postgres_port
           }

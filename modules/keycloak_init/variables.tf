@@ -1,3 +1,9 @@
+variable "namespace" {
+  type        = string
+  default     = null
+  description = "Namespace where the resources will be created."
+}
+
 variable "backoff_limit" {
   type        = number
   description = "The number of retries before considering the job as failed."

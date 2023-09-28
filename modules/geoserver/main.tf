@@ -47,6 +47,7 @@ resource "kubernetes_secret" "geoserver_secrets" {
   }
 }
 
+// trunk-ignore(checkov/CKV_K8S_35): Prefer using secrets as files over secrets as environment variables
 resource "kubernetes_deployment" "geoserver" {
   metadata {
     name      = "geoserver-deployment"
@@ -70,8 +71,12 @@ resource "kubernetes_deployment" "geoserver" {
       }
       spec {
         container {
-          image = "kartoza/geoserver:2.23.1"
-          name  = "geoserver"
+          image             = "kartoza/geoserver:2.23.1"
+          name              = "geoserver"
+          image_pull_policy = "Always"
+          security_context {
+            allow_privilege_escalation = false
+          }
           port {
             container_port = local.geoserver_port
           }
@@ -84,6 +89,32 @@ resource "kubernetes_deployment" "geoserver" {
               cpu    = "250m"
               memory = "1Gi"
             }
+            limits = {
+              cpu    = "2000m"
+              memory = "4Gi"
+            }
+          }
+          liveness_probe {
+            http_get {
+              path = "/geoserver/web"
+              port = local.geoserver_port
+            }
+            initial_delay_seconds = 120
+            period_seconds        = 20
+            timeout_seconds       = 10
+            success_threshold     = 1
+            failure_threshold     = 3
+          }
+          readiness_probe {
+            http_get {
+              path = "/geoserver/web"
+              port = local.geoserver_port
+            }
+            initial_delay_seconds = 120
+            period_seconds        = 20
+            timeout_seconds       = 10
+            success_threshold     = 1
+            failure_threshold     = 6
           }
           # https://github.com/kartoza/docker-geoserver/blob/ffecc3cedf0de65b87d23c92e06b96214e07c6b2/.env
           env_from {

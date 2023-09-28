@@ -1,3 +1,11 @@
+resource "kubernetes_namespace" "enable_postgis" {
+  count = var.namespace == null ? 1 : 0
+  metadata {
+    annotations = { name = "postgis-enable-job" }
+    name        = "postgis-enable-job"
+  }
+}
+
 resource "random_password" "job_user_password" {
   length  = 20
   special = false
@@ -11,17 +19,19 @@ resource "google_sql_user" "sql_user" {
 }
 
 locals {
-  pg_user = google_sql_user.sql_user.name
-  pg_pass = random_password.job_user_password.result
-  pg_host = var.postgres_host
-  pg_port = var.postgres_port
+  namespace = var.namespace == null ? one(kubernetes_namespace.enable_postgis[*].id) : var.namespace
+  pg_user   = google_sql_user.sql_user.name
+  pg_pass   = random_password.job_user_password.result
+  pg_host   = var.postgres_host
+  pg_port   = var.postgres_port
   # By creating the extension in template1, it will be available for all the other databases that are created afterwards.
   pg_db = "template1"
 }
 
 resource "kubernetes_secret" "enable_postgis" {
   metadata {
-    name = "secrets-enable-postgis"
+    name      = "secrets-enable-postgis"
+    namespace = local.namespace
   }
 
   data = {
@@ -31,7 +41,8 @@ resource "kubernetes_secret" "enable_postgis" {
 
 resource "kubernetes_job_v1" "enable_postgis" {
   metadata {
-    name = "enable-postgis"
+    name      = "enable-postgis"
+    namespace = local.namespace
   }
 
   wait_for_completion = false
