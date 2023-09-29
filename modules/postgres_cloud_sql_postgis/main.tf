@@ -57,7 +57,7 @@ resource "kubernetes_job_v1" "enable_postgis" {
       spec {
         container {
           name              = "enable-postgis"
-          image             = "docker.io/agmangas/moderate-cli:latest"
+          image             = "docker.io/agmangas/moderate-cli:0.2.1"
           image_pull_policy = "Always"
           command = [
             "moderatecli",

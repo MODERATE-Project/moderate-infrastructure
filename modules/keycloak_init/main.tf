@@ -56,11 +56,12 @@ resource "kubernetes_job_v1" "keycloak_init" {
       spec {
         container {
           name              = "keycloak-init"
-          image             = "docker.io/agmangas/moderate-cli:latest"
+          image             = "docker.io/agmangas/moderate-cli:0.2.1"
           image_pull_policy = "Always"
           command = [
-            "moderatecli",
-            "create-keycloak-entities"
+            "/bin/bash",
+            "-c",
+            "\"moderatecli create-keycloak-realm && moderatecli create-apisix-client\""
           ]
           env_from {
             secret_ref {
