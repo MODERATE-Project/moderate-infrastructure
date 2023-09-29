@@ -6,7 +6,7 @@ vars:
   CLI_IMAGE_LOCAL_NAME: moderate-cli
   CLI_IMAGE_REMOTE_NAME: agmangas/moderate-cli
   CLI_IMAGE_REMOTE_TAG:
-    sh: git rev-parse HEAD | head -c 10
+    sh: cd {{.ROOT_DIR}}/cli && poetry version --short 2> echo
 
 tasks:
   get-credentials:
@@ -42,6 +42,7 @@ tasks:
 
   push-cli-image:
     desc: Build and push the MODERATE CLI image to the public registry
+    prompt: 🚧 This will push the CLI image to the public registry with tag '{{.CLI_IMAGE_REMOTE_TAG}}'. Are you sure?
     cmds:
       - docker buildx build --platform=linux/amd64 -t {{.CLI_IMAGE_LOCAL_NAME}} {{.ROOT_DIR}}/cli
       - docker tag {{.CLI_IMAGE_LOCAL_NAME}} {{.CLI_IMAGE_REMOTE_NAME}}:{{.CLI_IMAGE_REMOTE_TAG}}
