@@ -1,6 +1,7 @@
 import logging
 import pprint
 import time
+from typing import Union
 
 from keycloak import KeycloakAdmin, KeycloakOpenIDConnection
 
@@ -108,13 +109,20 @@ def login_admin(
     keycloak_url: str,
     keycloak_admin_user: str,
     keycloak_admin_pass: str,
-    realm_name: str = "master",
+    realm_name: Union[str, None] = None,
 ) -> KeycloakAdmin:
+    conn_kwargs = (
+        {}
+        if not realm_name
+        else {"realm_name": realm_name, "user_realm_name": "master"}
+    )
+
     keycloak_connection = KeycloakOpenIDConnection(
         server_url=keycloak_url,
         username=keycloak_admin_user,
         password=keycloak_admin_pass,
         verify=True,
+        **conn_kwargs,
     )
 
     return KeycloakAdmin(connection=keycloak_connection)
