@@ -6,6 +6,7 @@ import typer
 from typing_extensions import Annotated
 
 import moderatecli.kc
+import moderatecli.kc.flows
 import moderatecli.postgis
 
 
@@ -164,6 +165,16 @@ def create_open_metadata_client(
         client_id=open_metadata_client_id,
         client_secret=open_metadata_client_secret,
         root_url=open_metadata_root_url,
+    )
+
+    role_name = moderatecli.kc.flows.create_role_for_client_access(
+        keycloak_admin=keycloak_admin, client_id=open_metadata_client_id
+    )
+
+    moderatecli.kc.flows.create_role_based_browser_flow_draft(
+        keycloak_admin=keycloak_admin,
+        role_name=role_name,
+        bind_to_client_id=open_metadata_client_id,
     )
 
 

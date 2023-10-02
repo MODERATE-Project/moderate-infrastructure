@@ -1,3 +1,4 @@
+import re
 from collections.abc import Mapping
 from typing import List
 
@@ -16,3 +17,11 @@ def dict_deep_merge(dct, merge_dct):
 
 def join_url_parts(*args: List[str]) -> str:
     return "/".join(map(lambda x: str(x).rstrip("/"), args))
+
+
+def slugify(*args: List[str]) -> str:
+    return re.sub(r"[^\w\s-]", "", "-".join(args))
+
+
+def snake_case(*args: List[str]) -> str:
+    return "_".join(map(lambda x: str(x).lower().strip(), args))
