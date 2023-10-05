@@ -98,6 +98,6 @@ resource "kubernetes_service" "moderate_api" {
       port        = local.api_port
       target_port = local.api_port
     }
-    type = "NodePort"
+    type = "ClusterIP"
   }
 }

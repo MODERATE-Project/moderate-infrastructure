@@ -109,6 +109,6 @@ resource "kubernetes_service" "timescale" {
       port        = local.pg_port
       target_port = local.pg_port
     }
-    type = "NodePort"
+    type = "ClusterIP"
   }
 }
