@@ -7,6 +7,8 @@ vars:
   CLI_IMAGE_REMOTE_NAME: agmangas/moderate-cli
   CLI_IMAGE_REMOTE_TAG:
     sh: cd {{.ROOT_DIR}}/cli && poetry version --short 2> echo
+  DAGSTER_NAMESPACE: dagster
+  DAGSTER_WEBSERVER_PORT: 8181
 
 tasks:
   get-credentials:
@@ -49,3 +51,18 @@ tasks:
       - docker tag {{.CLI_IMAGE_LOCAL_NAME}} {{.CLI_IMAGE_REMOTE_NAME}}:latest
       - docker push {{.CLI_IMAGE_REMOTE_NAME}}:{{.CLI_IMAGE_REMOTE_TAG}}
       - docker push {{.CLI_IMAGE_REMOTE_NAME}}:latest
+
+  port-forward-dagster-ui:
+    desc: Expose the Dagster UI to localhost using kubectl port-forward
+    vars:
+      DAGSTER_WEBSERVER_POD_NAME:
+        sh: kubectl get pods --namespace {{.DAGSTER_NAMESPACE}} -l "component=dagster-webserver" -o jsonpath="{.items[0].metadata.name}"
+    cmds:
+      - >
+        while true; do
+        (kubectl port-forward
+        -n {{.DAGSTER_NAMESPACE}}
+        --address=0.0.0.0
+        {{.DAGSTER_WEBSERVER_POD_NAME}}
+        {{.DAGSTER_WEBSERVER_PORT}}:80) || true;
+        done
