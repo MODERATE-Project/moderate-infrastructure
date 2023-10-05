@@ -1,8 +1,10 @@
 locals {
-  issuer_staging        = "letsencrypt-staging"
-  issuer_prod           = "letsencrypt-prod"
+  issuer_staging = "letsencrypt-staging"
+  issuer_prod    = "letsencrypt-prod"
+  // trunk-ignore(checkov/CKV_SECRET_6)
   issuer_secret_staging = "letsencrypt-staging"
-  issuer_secret_prod    = "letsencrypt-prod"
+  // trunk-ignore(checkov/CKV_SECRET_6)
+  issuer_secret_prod = "letsencrypt-prod"
 }
 
 resource "google_service_account" "cm_dns_sa" {
