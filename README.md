@@ -45,6 +45,12 @@ By default the image is published in Docker Hub under the [`agmangas/moderate-cl
 
 ### Manual steps
 
+#### Updating the DNS records
+
+The DNS records for the `moderate.cloud` domain are managed by Google's Cloud DNS. It is necessary to manually update these records to point to the newly created NGINX Ingress load balancer. This is achieved by running the [`update-dns.sh`](scripts/update-dns.sh) script.
+
+> Please note that when using the `task apply-prod` task this will be automatically done for you.
+
 #### Configuring the OpenMetadata JWT token
 
 The Dagster assets that run the metadata workflows require a JWT token to authenticate with the OpenMetadata service. However, this token can only be generated manually in the OpenMetadata web UI. To do so, access the *Settings > Integrations > Bots* section and revoke the existing token to generate a new one.
