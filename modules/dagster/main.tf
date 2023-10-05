@@ -46,6 +46,9 @@ resource "kubernetes_secret" "dagster_secrets" {
     POSTGRES_PORT           = var.postgres_port
     POSTGRES_USERNAME       = google_sql_user.dagster_sql_user.name
     POSTGRES_PASSWORD       = google_sql_user.dagster_sql_user.password
+    OPEN_METADATA_HOST      = var.open_metadata_host
+    OPEN_METADATA_PORT      = var.open_metadata_port
+    OPEN_METADATA_TOKEN     = var.open_metadata_token
   }
 }
 
@@ -106,6 +109,10 @@ locals {
 }
 
 resource "helm_release" "dagster" {
+  lifecycle {
+    replace_triggered_by = [kubernetes_secret.dagster_secrets]
+  }
+
   depends_on = [google_sql_database.sql_database_building_stock]
   name       = "dagster"
   repository = "https://dagster-io.github.io/helm"

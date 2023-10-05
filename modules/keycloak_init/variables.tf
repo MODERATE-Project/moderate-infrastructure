@@ -26,3 +26,8 @@ variable "keycloak_url" {
   type        = string
   description = "The base API URL of Keycloak."
 }
+
+variable "open_metadata_root_url" {
+  type        = string
+  description = "Root URL of the Open Metadata service."
+}

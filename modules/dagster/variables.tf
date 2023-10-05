@@ -57,3 +57,20 @@ variable "ingress_enabled" {
   default     = false
   description = "Whether to enable ingress for the Dagster web UI"
 }
+
+variable "open_metadata_host" {
+  type        = string
+  description = "Host for the Open Metadata service (including the scheme)"
+}
+
+variable "open_metadata_port" {
+  type        = number
+  default     = 8585
+  description = "Port for the Open Metadata service"
+}
+
+variable "open_metadata_token" {
+  type        = string
+  default     = null
+  description = "JWT token of the Open Metadata ingestion bot. This needs to be defined manually after the first deployment."
+}

@@ -42,3 +42,11 @@ task push-cli-image
 ```
 
 By default the image is published in Docker Hub under the [`agmangas/moderate-cli`](https://hub.docker.com/r/agmangas/moderate-cli) repository. However, this can be configured in the `Taskfile.yml` file.
+
+### Manual steps
+
+#### Configuring the OpenMetadata JWT token
+
+The Dagster assets that run the metadata workflows require a JWT token to authenticate with the OpenMetadata service. However, this token can only be generated manually in the OpenMetadata web UI. To do so, access the *Settings > Integrations > Bots* section and revoke the existing token to generate a new one.
+
+Then, add the new token to the `open_metadata_token` variable in the `variables.auto.tfvars` file of the `gcp_prod` Terraform module. Re-apply the Terraform configuration to update the Kubernetes secrets.

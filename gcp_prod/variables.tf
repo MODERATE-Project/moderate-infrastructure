@@ -82,3 +82,14 @@ variable "domain_dagster" {
   type        = string
   description = "Public DNS domain of the Dagster web UI"
 }
+
+variable "domain_open_metadata" {
+  type        = string
+  description = "Public DNS domain of the Open Metadata web application"
+}
+
+variable "open_metadata_token" {
+  type        = string
+  default     = null
+  description = "Token of the Open Metadata ingestion bot. This should be defined after the deployment as the token has to be retrieved manually from the Open Metadata web UI."
+}

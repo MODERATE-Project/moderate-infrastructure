@@ -142,10 +142,11 @@ module "keycloak" {
 }
 
 module "keycloak_init" {
-  source              = "../modules/keycloak_init"
-  keycloak_admin_user = module.keycloak.keycloak_admin_user
-  keycloak_admin_pass = module.keycloak.keycloak_admin_pass
-  keycloak_url        = "http://${module.keycloak.keycloak_service_host_port}"
+  source                 = "../modules/keycloak_init"
+  keycloak_admin_user    = module.keycloak.keycloak_admin_user
+  keycloak_admin_pass    = module.keycloak.keycloak_admin_pass
+  keycloak_url           = "http://${module.keycloak.keycloak_service_host_port}"
+  open_metadata_root_url = "https://${var.domain_open_metadata}"
 }
 
 module "api" {
@@ -182,6 +183,20 @@ module "geoserver" {
   cert_manager_issuer = module.cert_manager.cluster_issuer_prod_name
 }
 
+module "open_metadata" {
+  depends_on                       = [module.cert_manager]
+  source                           = "../modules/open_metadata"
+  authorizer_principal_domain      = var.base_domain
+  keycloak_url                     = "https://${var.domain_keycloak}"
+  keycloak_realm                   = module.keycloak_init.moderate_realm_name
+  open_metadata_keycloak_client_id = module.keycloak_init.open_metadata_client_id
+  cloud_sql_instance_name          = module.postgres_cloud_sql.sql_instance_name
+  postgres_host                    = module.postgres_cloud_sql_proxy.cloud_sql_proxy_service
+  ingress_enabled                  = true
+  open_metadata_domain             = var.domain_open_metadata
+  cert_manager_issuer              = module.cert_manager.cluster_issuer_prod_name
+}
+
 module "dagster" {
   depends_on              = [module.cert_manager]
   source                  = "../modules/dagster"
@@ -193,6 +208,9 @@ module "dagster" {
   keycloak_admin_pass     = module.keycloak.keycloak_admin_pass
   keycloak_url            = "http://${module.keycloak.keycloak_service_host_port}"
   cert_manager_issuer     = module.cert_manager.cluster_issuer_prod_name
+  open_metadata_host      = "http://${module.open_metadata.open_metadata_service_host}"
+  open_metadata_port      = module.open_metadata.open_metadata_service_port
+  open_metadata_token     = var.open_metadata_token
 }
 
 module "mongo" {

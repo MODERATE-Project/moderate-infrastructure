@@ -24,6 +24,7 @@ lint:
         # "Unsupported argument; An argument named "replace_triggered_by" is not expected here."
         - modules/apisix/main.tf
         - modules/yatai/nginx.tf
+        - modules/dagster/main.tf
         # "Unsupported block type; Blocks of type "cloud" are not expected here."
         - gcp_common/main.tf
         - gcp_prod/main.tf

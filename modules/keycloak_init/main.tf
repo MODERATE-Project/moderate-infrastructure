@@ -13,9 +13,15 @@ locals {
   apisix_client_id                    = "apisix"
   apisix_client_resource_yatai        = "yatai"
   apisix_client_resource_moderate_api = "moderateapi"
+  open_metadata_client_id             = "openmetadata"
 }
 
 resource "random_password" "apisix_client_secret" {
+  length  = 32
+  special = false
+}
+
+resource "random_password" "open_metadata_client_secret" {
   length  = 32
   special = false
 }
@@ -35,7 +41,20 @@ resource "kubernetes_secret" "keycloak_init" {
     APISIX_CLIENT_SECRET                = random_password.apisix_client_secret.result
     APISIX_CLIENT_RESOURCE_YATAI        = local.apisix_client_resource_yatai
     APISIX_CLIENT_RESOURCE_MODERATE_API = local.apisix_client_resource_moderate_api
+    OPEN_METADATA_CLIENT_ID             = local.open_metadata_client_id
+    OPEN_METADATA_CLIENT_SECRET         = random_password.open_metadata_client_secret.result
+    OPEN_METADATA_ROOT_URL              = var.open_metadata_root_url
   }
+}
+
+locals {
+  cli_name = "moderatecli"
+
+  cli_commands = [
+    "${local.cli_name} create-keycloak-realm",
+    "${local.cli_name} create-apisix-client",
+    "${local.cli_name} create-open-metadata-client"
+  ]
 }
 
 resource "kubernetes_job_v1" "keycloak_init" {
@@ -61,7 +80,7 @@ resource "kubernetes_job_v1" "keycloak_init" {
           command = [
             "/bin/bash",
             "-c",
-            "\"moderatecli create-keycloak-realm && moderatecli create-apisix-client\""
+            join(" && ", local.cli_commands)
           ]
           env_from {
             secret_ref {
