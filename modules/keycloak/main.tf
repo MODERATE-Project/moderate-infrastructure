@@ -216,6 +216,11 @@ resource "kubernetes_ingress_v1" "keycloak" {
     annotations = {
       "kubernetes.io/ingress.class"    = "nginx"
       "cert-manager.io/cluster-issuer" = var.cert_manager_issuer
+      # Increase buffer size to avoid "502 Bad Gateway" errors during OAuth2 callbacks
+      "nginx.ingress.kubernetes.io/proxy-buffering"          = "on"
+      "nginx.ingress.kubernetes.io/proxy-buffer-size"        = "2048k"
+      "nginx.ingress.kubernetes.io/proxy-buffers-number"     = "4"
+      "nginx.ingress.kubernetes.io/proxy-max-temp-file-size" = "2048m"
     }
   }
 
