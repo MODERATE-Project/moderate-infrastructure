@@ -2,12 +2,17 @@ terraform {
   required_providers {
     google = {
       source  = "hashicorp/google"
-      version = "4.82.0"
+      version = "~> 5.0"
     }
 
     kubectl = {
       source  = "gavinbunney/kubectl"
-      version = "1.14.0"
+      version = "~> 1.14.0"
+    }
+
+    google-beta = {
+      source  = "hashicorp/google-beta"
+      version = "~> 4"
     }
   }
 }
@@ -101,6 +106,11 @@ module "postgres_cloud_sql" {
   project_id         = var.project_id
   region             = var.region
   cluster_network_id = module.gke_cluster.cluster_network_id
+
+  # https://github.com/hashicorp/terraform-provider-google/issues/16275#issuecomment-1825752152
+  providers = {
+    google-beta = google-beta
+  }
 }
 
 module "postgres_cloud_sql_proxy" {

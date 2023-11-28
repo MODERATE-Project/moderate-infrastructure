@@ -13,9 +13,9 @@ output "master_ipv4_cidr_block" {
 }
 
 output "cluster_network_name" {
-  value = google_compute_network.gke_cluster_network.name
+  value = module.gcp_network.network_name
 }
 
 output "cluster_network_id" {
-  value = google_compute_network.gke_cluster_network.id
+  value = module.gcp_network.network_id
 }

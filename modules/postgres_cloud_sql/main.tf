@@ -12,6 +12,8 @@ resource "google_service_networking_connection" "default" {
   network                 = var.cluster_network_id
   service                 = "servicenetworking.googleapis.com"
   reserved_peering_ranges = [google_compute_global_address.postgres_private_ip_address.name]
+  # https://github.com/hashicorp/terraform-provider-google/issues/16275#issuecomment-1825752152
+  provider = google-beta
 }
 
 resource "google_sql_database_instance" "postgres_sql_instance" {

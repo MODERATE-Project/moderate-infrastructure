@@ -1,33 +1,51 @@
-resource "google_compute_network" "gke_cluster_network" {
-  name = "gke-vpc-network"
-}
-
 locals {
   range_name_pods     = "gke-secondary-range-pods"
   range_name_services = "gke-secondary-range-services"
+  network_name        = "gke-vpc-network"
+  subnetwork_name     = "gke-subnetwork"
 }
 
-resource "google_compute_subnetwork" "gke_cluster_subnetwork" {
-  name          = "gke-subnetwork"
-  ip_cidr_range = var.cluster_subnet_cidr
-  region        = var.region
-  network       = google_compute_network.gke_cluster_network.id
+module "gcp_network" {
+  source  = "terraform-google-modules/network/google"
+  version = "~> 7.5"
 
-  secondary_ip_range {
-    range_name    = local.range_name_pods
-    ip_cidr_range = var.cluster_subnet_pods_cidr
-  }
+  project_id   = var.project_id
+  network_name = local.network_name
 
-  secondary_ip_range {
-    range_name    = local.range_name_services
-    ip_cidr_range = var.cluster_subnet_services_cidr
+  subnets = [
+    {
+      subnet_name           = local.subnetwork_name
+      subnet_ip             = var.cidr_subnet
+      subnet_region         = var.region
+      subnet_private_access = "true"
+    },
+  ]
+
+  secondary_ranges = {
+    (local.subnetwork_name) = [
+      {
+        range_name    = local.range_name_pods
+        ip_cidr_range = var.cidr_cluster_pods
+      },
+      {
+        range_name    = local.range_name_services
+        ip_cidr_range = var.cidr_cluster_services
+      },
+    ]
   }
+}
+
+data "google_compute_subnetwork" "subnetwork" {
+  name       = local.subnetwork_name
+  project    = var.project_id
+  region     = var.region
+  depends_on = [module.gcp_network]
 }
 
 resource "google_compute_router" "gke_cluster_router" {
   name    = "gke-cluster-router"
-  region  = google_compute_subnetwork.gke_cluster_subnetwork.region
-  network = google_compute_network.gke_cluster_network.id
+  region  = module.gcp_network.subnets_regions[0]
+  network = module.gcp_network.network_id
 }
 
 resource "google_compute_router_nat" "gke_cluster_nat" {

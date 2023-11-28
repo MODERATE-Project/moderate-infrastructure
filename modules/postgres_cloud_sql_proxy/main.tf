@@ -14,6 +14,7 @@ locals {
 
 module "cloud_sql_proxy_wi" {
   source     = "terraform-google-modules/kubernetes-engine/google//modules/workload-identity"
+  version    = "~> 29.0.0"
   name       = "cloud-sql-proxy"
   namespace  = local.namespace
   project_id = var.project_id

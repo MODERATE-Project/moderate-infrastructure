@@ -23,7 +23,7 @@ resource "google_project_iam_binding" "iam_binding_object_admin" {
 
 module "bucket" {
   source          = "terraform-google-modules/cloud-storage/google"
-  version         = "~> 3.4"
+  version         = "~> 5.0"
   project_id      = var.project_id
   location        = var.region
   force_destroy   = { "yatai" = true }

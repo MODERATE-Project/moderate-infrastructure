@@ -4,6 +4,7 @@ locals {
 
 module "gke" {
   source                     = "terraform-google-modules/kubernetes-engine/google//modules/private-cluster"
+  version                    = "~> 29.0.0"
   kubernetes_version         = var.kubernetes_version == null ? "latest" : var.kubernetes_version
   release_channel            = var.kubernetes_version == null ? "STABLE" : "UNSPECIFIED"
   project_id                 = var.project_id
@@ -11,8 +12,8 @@ module "gke" {
   region                     = var.region
   zones                      = var.zones
   regional                   = var.regional
-  network                    = google_compute_network.gke_cluster_network.name
-  subnetwork                 = google_compute_subnetwork.gke_cluster_subnetwork.name
+  network                    = module.gcp_network.network_name
+  subnetwork                 = module.gcp_network.subnets_names[0]
   ip_range_pods              = local.range_name_pods
   ip_range_services          = local.range_name_services
   http_load_balancing        = true
@@ -25,6 +26,8 @@ module "gke" {
   registry_project_ids       = var.registry_project_ids
   gke_backup_agent_config    = true
   gce_pd_csi_driver          = true
+  deletion_protection        = false
+  master_ipv4_cidr_block     = var.master_ipv4_cidr_block
 
   node_pools = [
     {
