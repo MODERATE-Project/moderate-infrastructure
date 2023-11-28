@@ -26,6 +26,10 @@ routes:
     service_id: 1002
   - uri: /*
     host: ${host_moderate_api}
+    vars: [[uri, ~~, public(\/|$)]]
+    service_id: 1002
+  - uri: /*
+    host: ${host_moderate_api}
     service_id: 1002
     plugins:
       authz-keycloak:

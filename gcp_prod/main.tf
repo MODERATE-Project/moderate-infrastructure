@@ -160,8 +160,12 @@ module "keycloak_init" {
 }
 
 module "api" {
-  depends_on = [module.nginx_controller_gke]
-  source     = "../modules/moderate_api"
+  depends_on                         = [module.nginx_controller_gke]
+  source                             = "../modules/moderate_api"
+  project_id                         = var.project_id
+  region                             = var.region
+  cloud_sql_instance_name            = module.postgres_cloud_sql.sql_instance_name
+  cloud_sql_instance_connection_name = module.postgres_cloud_sql.sql_instance_connection_name
 }
 
 module "apisix" {
