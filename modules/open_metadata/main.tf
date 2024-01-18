@@ -134,7 +134,6 @@ locals {
           port         = var.postgres_port
           driverClass  = "org.postgresql.Driver"
           dbScheme     = "postgresql"
-          dbUseSSL     = false
           databaseName = google_sql_database.sql_database_open_metadata.name
           auth = {
             username = google_sql_user.open_metadata_sql_user.name
@@ -143,6 +142,7 @@ locals {
               secretKey = local.open_metadata_postgres_password_key
             }
           }
+          dbParams = "sslmode=disable"
         }
         pipelineServiceClientConfig = {
           enabled = false
