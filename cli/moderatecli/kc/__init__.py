@@ -1,7 +1,7 @@
 import logging
 import pprint
 import time
-from typing import Union
+from typing import Any, Dict, List, Union
 
 from keycloak import KeycloakAdmin, KeycloakOpenIDConnection
 
@@ -12,6 +12,18 @@ _JSON_OPEN_METADATA_CLIENT = "open_metadata_client.json"
 _JSON_APISIX_CLIENT = "apisix_client.json"
 
 _logger = logging.getLogger(__name__)
+
+
+def _get_primkey_from_client_id(
+    keycloak_admin: KeycloakAdmin, client_id: str
+) -> Union[str, None]:
+    clients = keycloak_admin.get_clients()
+
+    the_client = next(
+        (client for client in clients if client["clientId"] == client_id), None
+    )
+
+    return the_client["id"] if the_client else None
 
 
 def build_open_metadata_client_data(
@@ -207,7 +219,8 @@ def create_user(
     email_verified: bool = True,
     first_name: Union[str, None] = None,
     last_name: Union[str, None] = None,
-) -> dict:
+    client_roles: Union[Dict[str, List[str]], None] = None,
+):
     user_data = {
         "username": username,
         "enabled": True,
@@ -225,7 +238,56 @@ def create_user(
         user_data["lastName"] = last_name
 
     _logger.info("Creating user: %s", username)
-    user_repr = keycloak_admin.create_user(user_data, exist_ok=True)
-    _logger.debug("User creation response:\n%s", pprint.pformat(user_repr))
+    user_id = keycloak_admin.create_user(user_data, exist_ok=True)
+    _logger.info("User ID (%s): %s", username, user_id)
 
-    return user_repr
+    if not client_roles:
+        return user_id
+
+    for client_id, roles in client_roles.items():
+        client_primkey = _get_primkey_from_client_id(keycloak_admin, client_id)
+        client_roles = keycloak_admin.get_client_roles(client_id=client_primkey)
+
+        for role_name in roles:
+            the_role_repr = next(
+                (item for item in client_roles if item["name"] == role_name), None
+            )
+
+            if not the_role_repr:
+                _logger.warning("Role %s not found for client %s", role_name, client_id)
+                continue
+
+            _logger.info(
+                "Assigning role to user %s:\n%s",
+                username,
+                pprint.pformat(the_role_repr),
+            )
+
+            role_assign_resp = keycloak_admin.assign_client_role(
+                user_id=user_id, client_id=client_primkey, roles=the_role_repr
+            )
+
+            _logger.debug(
+                "Role assignment response:\n%s", pprint.pformat(role_assign_resp)
+            )
+
+    return user_id
+
+
+def create_role(keycloak_admin: KeycloakAdmin, client_id: str, role_name: str):
+    client_primkey = _get_primkey_from_client_id(keycloak_admin, client_id)
+
+    if client_primkey is None:
+        raise ValueError(f"No client found with client ID {client_id}")
+
+    role = {"name": role_name}
+
+    _logger.info("Creating role %s for client %s", role_name, client_id)
+
+    role_resp = keycloak_admin.create_client_role(
+        client_role_id=client_primkey, payload=role, skip_exists=True
+    )
+
+    _logger.info("Role creation response:\n%s", pprint.pformat(role_resp))
+
+    return role_resp

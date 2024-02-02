@@ -26,6 +26,7 @@ class Variables(str, enum.Enum):
     OPEN_METADATA_ROOT_URL = "OPEN_METADATA_ROOT_URL"
     USER_USERNAME = "USER_USERNAME"
     USER_PASSWORD = "USER_PASSWORD"
+    APISIX_API_ADMIN_ROLE = "APISIX_API_ADMIN_ROLE"
 
 
 class Defaults(str, enum.Enum):
@@ -37,6 +38,7 @@ class Defaults(str, enum.Enum):
     APISIX_CLIENT_RESOURCE_MODERATE_API = "moderateapi"
     APISIX_RESOURCES_TYPE = "urn:apisix:resources:default"
     OPEN_METADATA_CLIENT_ID = "open-metadata"
+    APISIX_API_ADMIN_ROLE = "api_admin"
 
 
 app = typer.Typer()
@@ -181,6 +183,43 @@ def create_open_metadata_client(
 
 
 @app.command()
+def create_api_admin_role(
+    keycloak_admin_pass: Annotated[
+        str, typer.Argument(envvar=Variables.KEYCLOAK_ADMIN_PASS.value)
+    ],
+    apisix_api_admin_role: Annotated[
+        str, typer.Argument(envvar=Variables.APISIX_API_ADMIN_ROLE.value)
+    ] = Defaults.APISIX_API_ADMIN_ROLE.value,
+    keycloak_url: Annotated[
+        str, typer.Argument(envvar=Variables.KEYCLOAK_URL.value)
+    ] = Defaults.KEYCLOAK_URL.value,
+    keycloak_admin_user: Annotated[
+        str, typer.Argument(envvar=Variables.KEYCLOAK_ADMIN_USER.value)
+    ] = Defaults.KEYCLOAK_ADMIN_USER.value,
+    moderate_realm: Annotated[
+        str, typer.Argument(envvar=Variables.MODERATE_REALM.value)
+    ] = Defaults.MODERATE_REALM.value,
+    apisix_client_id: Annotated[
+        str, typer.Argument(envvar=Variables.APISIX_CLIENT_ID.value)
+    ] = Defaults.APISIX_CLIENT_ID.value,
+):
+    """Create the API Admin role for APISIX."""
+
+    keycloak_admin = moderatecli.kc.login_admin(
+        keycloak_url=keycloak_url,
+        keycloak_admin_user=keycloak_admin_user,
+        keycloak_admin_pass=keycloak_admin_pass,
+        realm_name=moderate_realm,
+    )
+
+    moderatecli.kc.create_role(
+        keycloak_admin=keycloak_admin,
+        client_id=apisix_client_id,
+        role_name=apisix_api_admin_role,
+    )
+
+
+@app.command()
 def create_keycloak_user(
     keycloak_admin_pass: Annotated[
         str, typer.Argument(envvar=Variables.KEYCLOAK_ADMIN_PASS.value)
@@ -196,6 +235,12 @@ def create_keycloak_user(
     moderate_realm: Annotated[
         str, typer.Argument(envvar=Variables.MODERATE_REALM.value)
     ] = Defaults.MODERATE_REALM.value,
+    apisix_client_id: Annotated[
+        str, typer.Argument(envvar=Variables.APISIX_CLIENT_ID.value)
+    ] = Defaults.APISIX_CLIENT_ID.value,
+    apisix_api_admin_role: Annotated[
+        str, typer.Argument(envvar=Variables.APISIX_API_ADMIN_ROLE.value)
+    ] = Defaults.APISIX_API_ADMIN_ROLE.value,
 ):
     """Create a new user in the MODERATE realm."""
 
@@ -207,7 +252,10 @@ def create_keycloak_user(
     )
 
     moderatecli.kc.create_user(
-        keycloak_admin=keycloak_admin, username=username, password=password
+        keycloak_admin=keycloak_admin,
+        username=username,
+        password=password,
+        client_roles={apisix_client_id: [apisix_api_admin_role]},
     )
 
 
