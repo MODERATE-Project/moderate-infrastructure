@@ -197,3 +197,35 @@ def create_apisix_client(
         client_id=client_id,
         client_data=client_data,
     )
+
+
+def create_user(
+    keycloak_admin: KeycloakAdmin,
+    username: str,
+    password: str,
+    email: Union[str, None] = None,
+    email_verified: bool = True,
+    first_name: Union[str, None] = None,
+    last_name: Union[str, None] = None,
+) -> dict:
+    user_data = {
+        "username": username,
+        "enabled": True,
+        "credentials": [{"type": "password", "value": password, "temporary": False}],
+    }
+
+    if email:
+        user_data["email"] = email
+        user_data["emailVerified"] = email_verified
+
+    if first_name:
+        user_data["firstName"] = first_name
+
+    if last_name:
+        user_data["lastName"] = last_name
+
+    _logger.info("Creating user: %s", username)
+    user_repr = keycloak_admin.create_user(user_data, exist_ok=True)
+    _logger.debug("User creation response:\n%s", pprint.pformat(user_repr))
+
+    return user_repr
