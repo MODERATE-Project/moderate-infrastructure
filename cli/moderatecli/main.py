@@ -26,7 +26,6 @@ class Variables(str, enum.Enum):
     OPEN_METADATA_ROOT_URL = "OPEN_METADATA_ROOT_URL"
     USER_USERNAME = "USER_USERNAME"
     USER_PASSWORD = "USER_PASSWORD"
-    USER_EMAIL = "USER_EMAIL"
 
 
 class Defaults(str, enum.Enum):
@@ -188,7 +187,6 @@ def create_keycloak_user(
     ],
     username: Annotated[str, typer.Argument(envvar=Variables.USER_USERNAME.value)],
     password: Annotated[str, typer.Argument(envvar=Variables.USER_PASSWORD.value)],
-    email: Annotated[str, typer.Argument(envvar=Variables.USER_EMAIL.value)],
     keycloak_url: Annotated[
         str, typer.Argument(envvar=Variables.KEYCLOAK_URL.value)
     ] = Defaults.KEYCLOAK_URL.value,
@@ -209,10 +207,7 @@ def create_keycloak_user(
     )
 
     moderatecli.kc.create_user(
-        keycloak_admin=keycloak_admin,
-        username=username,
-        password=password,
-        email=email,
+        keycloak_admin=keycloak_admin, username=username, password=password
     )
 
 
