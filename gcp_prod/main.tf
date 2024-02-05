@@ -6,8 +6,8 @@ terraform {
     }
 
     kubectl = {
-      source  = "gavinbunney/kubectl"
-      version = "~> 1.14.0"
+      source  = "alekc/kubectl"
+      version = "~> 2.0.4"
     }
 
     google-beta = {
@@ -159,20 +159,6 @@ module "keycloak_init" {
   open_metadata_root_url = "https://${var.domain_open_metadata}"
 }
 
-module "apisix" {
-  depends_on                        = [module.cert_manager]
-  source                            = "../modules/apisix"
-  base_domain                       = var.base_domain
-  cert_manager_issuer               = module.cert_manager.cluster_issuer_prod_name
-  yatai_proxy_node                  = module.yatai.proxy_service_host_port
-  moderate_api_node                 = module.api.api_service_host_port
-  keycloak_realm                    = module.keycloak_init.moderate_realm_name
-  keycloak_client_id                = module.keycloak_init.apisix_client_id
-  keycloak_client_secret            = module.keycloak_init.apisix_client_secret
-  keycloak_permissions_yatai        = module.keycloak_init.apisix_client_resource_yatai
-  keycloak_permissions_moderate_api = module.keycloak_init.apisix_client_resource_moderate_api
-}
-
 module "timescale" {
   depends_on                  = [module.cert_manager]
   source                      = "../modules/timescale"
@@ -202,22 +188,6 @@ module "open_metadata" {
   cert_manager_issuer              = module.cert_manager.cluster_issuer_prod_name
 }
 
-module "dagster" {
-  depends_on              = [module.cert_manager]
-  source                  = "../modules/dagster"
-  ingress_enabled         = false
-  domain                  = var.domain_dagster
-  cloud_sql_instance_name = module.postgres_cloud_sql.sql_instance_name
-  postgres_host           = module.postgres_cloud_sql_proxy.cloud_sql_proxy_service
-  keycloak_admin_user     = module.keycloak.keycloak_admin_user
-  keycloak_admin_pass     = module.keycloak.keycloak_admin_pass
-  keycloak_url            = "http://${module.keycloak.keycloak_service_host_port}"
-  cert_manager_issuer     = module.cert_manager.cluster_issuer_prod_name
-  open_metadata_host      = "http://${module.open_metadata.open_metadata_service_host}"
-  open_metadata_port      = module.open_metadata.open_metadata_service_port
-  open_metadata_token     = var.open_metadata_token
-}
-
 module "mongo" {
   depends_on = [module.cert_manager]
   source     = "../modules/mongo"
@@ -239,4 +209,37 @@ module "api" {
   cloud_sql_instance_name            = module.postgres_cloud_sql.sql_instance_name
   cloud_sql_instance_connection_name = module.postgres_cloud_sql.sql_instance_connection_name
   trust_service_endpoint_url         = module.trust.trust_internal_url
+}
+
+module "apisix" {
+  depends_on                        = [module.cert_manager]
+  source                            = "../modules/apisix"
+  base_domain                       = var.base_domain
+  cert_manager_issuer               = module.cert_manager.cluster_issuer_prod_name
+  yatai_proxy_node                  = module.yatai.proxy_service_host_port
+  moderate_api_node                 = module.api.api_service_host_port
+  keycloak_realm                    = module.keycloak_init.moderate_realm_name
+  keycloak_client_id                = module.keycloak_init.apisix_client_id
+  keycloak_client_secret            = module.keycloak_init.apisix_client_secret
+  keycloak_permissions_yatai        = module.keycloak_init.apisix_client_resource_yatai
+  keycloak_permissions_moderate_api = module.keycloak_init.apisix_client_resource_moderate_api
+}
+
+module "dagster" {
+  depends_on              = [module.cert_manager]
+  source                  = "../modules/dagster"
+  ingress_enabled         = false
+  domain                  = var.domain_dagster
+  cloud_sql_instance_name = module.postgres_cloud_sql.sql_instance_name
+  postgres_host           = module.postgres_cloud_sql_proxy.cloud_sql_proxy_service
+  keycloak_admin_user     = module.keycloak.keycloak_admin_user
+  keycloak_admin_pass     = module.keycloak.keycloak_admin_pass
+  keycloak_url            = "http://${module.keycloak.keycloak_service_host_port}"
+  cert_manager_issuer     = module.cert_manager.cluster_issuer_prod_name
+  open_metadata_host      = "http://${module.open_metadata.open_metadata_service_host}"
+  open_metadata_port      = module.open_metadata.open_metadata_service_port
+  open_metadata_token     = var.open_metadata_token
+  platform_api_username   = module.keycloak_init.platform_api_username
+  platform_api_password   = module.keycloak_init.platform_api_password
+  platform_api_url        = module.apisix.public_moderate_api_url
 }

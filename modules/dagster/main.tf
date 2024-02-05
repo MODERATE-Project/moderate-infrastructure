@@ -49,6 +49,9 @@ resource "kubernetes_secret" "dagster_secrets" {
     OPEN_METADATA_HOST      = var.open_metadata_host
     OPEN_METADATA_PORT      = var.open_metadata_port
     OPEN_METADATA_TOKEN     = var.open_metadata_token
+    API_BASE_URL            = var.platform_api_url
+    API_USERNAME            = var.platform_api_username
+    API_PASSWORD            = var.platform_api_password
   }
 }
 
