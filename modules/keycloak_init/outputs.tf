@@ -25,3 +25,11 @@ output "open_metadata_client_id" {
 output "open_metadata_client_secret" {
   value = random_password.open_metadata_client_secret.result
 }
+
+output "platform_api_username" {
+  value = local.moderate_api_username
+}
+
+output "platform_api_password" {
+  value = random_password.moderate_api_password.result
+}

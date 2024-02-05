@@ -159,15 +159,6 @@ module "keycloak_init" {
   open_metadata_root_url = "https://${var.domain_open_metadata}"
 }
 
-module "api" {
-  depends_on                         = [module.nginx_controller_gke]
-  source                             = "../modules/moderate_api"
-  project_id                         = var.project_id
-  region                             = var.region
-  cloud_sql_instance_name            = module.postgres_cloud_sql.sql_instance_name
-  cloud_sql_instance_connection_name = module.postgres_cloud_sql.sql_instance_connection_name
-}
-
 module "apisix" {
   depends_on                        = [module.cert_manager]
   source                            = "../modules/apisix"
@@ -230,4 +221,22 @@ module "dagster" {
 module "mongo" {
   depends_on = [module.cert_manager]
   source     = "../modules/mongo"
+}
+
+module "trust" {
+  depends_on     = [module.nginx_controller_gke]
+  source         = "../modules/trust_services"
+  mongo_endpoint = "${module.mongo.mongo_internal_host}:${module.mongo.mongo_internal_port}"
+  mongo_username = module.mongo.mongo_admin_user
+  mongo_password = module.mongo.mongo_admin_pass
+}
+
+module "api" {
+  depends_on                         = [module.nginx_controller_gke]
+  source                             = "../modules/moderate_api"
+  project_id                         = var.project_id
+  region                             = var.region
+  cloud_sql_instance_name            = module.postgres_cloud_sql.sql_instance_name
+  cloud_sql_instance_connection_name = module.postgres_cloud_sql.sql_instance_connection_name
+  trust_service_endpoint_url         = module.trust.trust_internal_url
 }

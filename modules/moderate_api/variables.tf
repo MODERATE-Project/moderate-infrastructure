@@ -23,3 +23,8 @@ variable "cloud_sql_instance_connection_name" {
   type        = string
   description = "Connection name of the Cloud SQL instance"
 }
+
+variable "trust_service_endpoint_url" {
+  type        = string
+  description = "URL of the Trust Services endpoint"
+}

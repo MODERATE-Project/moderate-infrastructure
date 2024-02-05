@@ -14,6 +14,8 @@ locals {
   apisix_client_resource_yatai        = "yatai"
   apisix_client_resource_moderate_api = "moderateapi"
   open_metadata_client_id             = "openmetadata"
+  moderate_api_username               = var.api_username
+  api_admin_role                      = "api_admin"
 }
 
 resource "random_password" "apisix_client_secret" {
@@ -22,6 +24,11 @@ resource "random_password" "apisix_client_secret" {
 }
 
 resource "random_password" "open_metadata_client_secret" {
+  length  = 32
+  special = false
+}
+
+resource "random_password" "moderate_api_password" {
   length  = 32
   special = false
 }
@@ -44,6 +51,9 @@ resource "kubernetes_secret" "keycloak_init" {
     OPEN_METADATA_CLIENT_ID             = local.open_metadata_client_id
     OPEN_METADATA_CLIENT_SECRET         = random_password.open_metadata_client_secret.result
     OPEN_METADATA_ROOT_URL              = var.open_metadata_root_url
+    USER_USERNAME                       = local.moderate_api_username
+    USER_PASSWORD                       = random_password.moderate_api_password.result
+    APISIX_API_ADMIN_ROLE               = local.api_admin_role
   }
 }
 
@@ -53,7 +63,9 @@ locals {
   cli_commands = [
     "${local.cli_name} create-keycloak-realm",
     "${local.cli_name} create-apisix-client",
-    "${local.cli_name} create-open-metadata-client"
+    "${local.cli_name} create-open-metadata-client",
+    "${local.cli_name} create-api-admin-role",
+    "${local.cli_name} create-keycloak-user"
   ]
 }
 
@@ -75,7 +87,7 @@ resource "kubernetes_job_v1" "keycloak_init" {
       spec {
         container {
           name              = "keycloak-init"
-          image             = "docker.io/agmangas/moderate-cli:0.2.4"
+          image             = "docker.io/agmangas/moderate-cli:0.4.0"
           image_pull_policy = "Always"
           command = [
             "/bin/bash",

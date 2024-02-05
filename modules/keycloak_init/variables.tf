@@ -31,3 +31,9 @@ variable "open_metadata_root_url" {
   type        = string
   description = "Root URL of the Open Metadata service."
 }
+
+variable "api_username" {
+  type        = string
+  description = "The username of the API user."
+  default     = "tfapiuser"
+}
