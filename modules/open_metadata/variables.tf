@@ -6,7 +6,7 @@ variable "namespace" {
 
 variable "open_metadata_chart_version" {
   type        = string
-  default     = "1.2.7"
+  default     = "1.2.8"
   description = "Open Metadata Helm chart version"
 }
 
