@@ -31,3 +31,5 @@ pkgx openssl@3.1 rsa \
     -pubout \
     -outform DER \
     -out ${OUTPUT_KEYS_DIR}/${NAME_PUB_KEY}.der
+
+chmod -R 777 -v ${OUTPUT_KEYS_DIR}
