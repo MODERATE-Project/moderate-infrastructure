@@ -195,8 +195,9 @@ resource "kubernetes_ingress_v1" "apisix" {
     namespace = local.namespace
 
     annotations = {
-      "kubernetes.io/ingress.class"    = "nginx"
-      "cert-manager.io/cluster-issuer" = var.cert_manager_issuer
+      "kubernetes.io/ingress.class"                 = "nginx"
+      "cert-manager.io/cluster-issuer"              = var.cert_manager_issuer
+      "nginx.ingress.kubernetes.io/proxy-body-size" = var.proxy_body_size
     }
   }
 

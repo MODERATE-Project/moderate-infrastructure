@@ -79,3 +79,9 @@ variable "keycloak_permissions_moderate_api" {
   type        = string
   description = "Name of the Keycloak resource that represents the Moderate API."
 }
+
+variable "proxy_body_size" {
+  type        = string
+  default     = "1024m"
+  description = "Maximum allowed size of the client request body. This is an explicit limit on the size of the uploaded files."
+}
