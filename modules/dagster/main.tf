@@ -52,6 +52,11 @@ resource "kubernetes_secret" "dagster_secrets" {
     API_BASE_URL            = var.platform_api_url
     API_USERNAME            = var.platform_api_username
     API_PASSWORD            = var.platform_api_password
+    S3_ACCESS_KEY_ID        = var.s3_access_key
+    S3_SECRET_ACCESS_KEY    = var.s3_secret_key
+    S3_REGION               = "auto"
+    S3_BUCKET_NAME          = var.s3_bucket_name
+    S3_ENDPOINT_URL         = "https://storage.googleapis.com"
   }
 }
 

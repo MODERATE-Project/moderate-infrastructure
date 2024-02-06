@@ -90,3 +90,31 @@ variable "platform_api_password" {
   description = "The password of the platform API"
   sensitive   = true
 }
+
+variable "s3_bucket_name" {
+  type        = string
+  description = "Name of the S3 bucket to be profiled by OpenMetadata"
+}
+
+variable "s3_access_key" {
+  type        = string
+  description = "Access key of the S3 service"
+}
+
+variable "s3_secret_key" {
+  type        = string
+  description = "Secret key of the S3 service"
+  sensitive   = true
+}
+
+variable "s3_endpoint_url" {
+  type        = string
+  description = "Endpoint URL of the S3 service"
+  default     = "https://storage.googleapis.com"
+}
+
+variable "s3_region" {
+  type        = string
+  description = "Region of the S3 service"
+  default     = "auto"
+}

@@ -242,4 +242,9 @@ module "dagster" {
   platform_api_username   = module.keycloak_init.platform_api_username
   platform_api_password   = module.keycloak_init.platform_api_password
   platform_api_url        = module.apisix.public_moderate_api_url
+  s3_access_key           = module.api.api_s3_access_key
+  s3_secret_key           = module.api.api_s3_secret_key
+  s3_bucket_name          = module.api.api_s3_bucket_name
+  s3_endpoint_url         = module.api.api_s3_endpoint_url
+  s3_region               = module.api.api_s3_region
 }
