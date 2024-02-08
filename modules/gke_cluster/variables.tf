@@ -35,7 +35,7 @@ variable "nodes_min_count" {
 variable "nodes_max_count" {
   type        = number
   description = "Maximum number of nodes in each zone"
-  default     = 2
+  default     = 1
 }
 
 variable "registry_project_ids" {
