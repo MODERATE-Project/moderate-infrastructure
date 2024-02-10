@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "moderatecli"
-version = "0.4.0"
+version = "0.5.0"
 description = "CLI of the MODERATE platform"
 authors = ["Andres Garcia Mangas <andres.garcia@fundacionctic.org>"]
 readme = "README.md"
