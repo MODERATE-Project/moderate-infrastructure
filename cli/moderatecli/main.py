@@ -24,6 +24,9 @@ class Variables(str, enum.Enum):
     OPEN_METADATA_CLIENT_ID = "OPEN_METADATA_CLIENT_ID"
     OPEN_METADATA_CLIENT_SECRET = "OPEN_METADATA_CLIENT_SECRET"
     OPEN_METADATA_ROOT_URL = "OPEN_METADATA_ROOT_URL"
+    UI_CLIENT_ID = "UI_CLIENT_ID"
+    UI_WEB_ORIGINS = "UI_WEB_ORIGINS"
+    UI_REDIRECT_URIS = "UI_REDIRECT_URIS"
     USER_USERNAME = "USER_USERNAME"
     USER_PASSWORD = "USER_PASSWORD"
     APISIX_API_ADMIN_ROLE = "APISIX_API_ADMIN_ROLE"
@@ -38,6 +41,9 @@ class Defaults(str, enum.Enum):
     APISIX_CLIENT_RESOURCE_MODERATE_API = "moderateapi"
     APISIX_RESOURCES_TYPE = "urn:apisix:resources:default"
     OPEN_METADATA_CLIENT_ID = "open-metadata"
+    UI_CLIENT_ID = "ui"
+    UI_WEB_ORIGINS = "https://*.moderate.cloud"
+    UI_REDIRECT_URIS = "https://*.moderate.cloud/*"
     APISIX_API_ADMIN_ROLE = "api_admin"
 
 
@@ -179,6 +185,47 @@ def create_open_metadata_client(
         keycloak_admin=keycloak_admin,
         role_name=role_name,
         bind_to_client_id=open_metadata_client_id,
+    )
+
+
+@app.command()
+def create_ui_client(
+    keycloak_admin_pass: Annotated[
+        str, typer.Argument(envvar=Variables.KEYCLOAK_ADMIN_PASS.value)
+    ],
+    moderate_realm: Annotated[
+        str, typer.Argument(envvar=Variables.MODERATE_REALM.value)
+    ] = Defaults.MODERATE_REALM.value,
+    keycloak_url: Annotated[
+        str, typer.Argument(envvar=Variables.KEYCLOAK_URL.value)
+    ] = Defaults.KEYCLOAK_URL.value,
+    keycloak_admin_user: Annotated[
+        str, typer.Argument(envvar=Variables.KEYCLOAK_ADMIN_USER.value)
+    ] = Defaults.KEYCLOAK_ADMIN_USER.value,
+    ui_client_id: Annotated[
+        str, typer.Argument(envvar=Variables.UI_CLIENT_ID.value)
+    ] = Defaults.UI_CLIENT_ID.value,
+    ui_web_origins: Annotated[
+        str, typer.Argument(envvar=Variables.UI_WEB_ORIGINS.value)
+    ] = Defaults.UI_WEB_ORIGINS.value,
+    ui_redirect_uris: Annotated[
+        str, typer.Argument(envvar=Variables.UI_REDIRECT_URIS.value)
+    ] = Defaults.UI_REDIRECT_URIS.value,
+):
+    """Create the User Interfaces client."""
+
+    keycloak_admin = moderatecli.kc.login_admin(
+        keycloak_url=keycloak_url,
+        keycloak_admin_user=keycloak_admin_user,
+        keycloak_admin_pass=keycloak_admin_pass,
+        realm_name=moderate_realm,
+    )
+
+    moderatecli.kc.create_ui_client(
+        keycloak_admin=keycloak_admin,
+        client_id=ui_client_id,
+        web_origins=ui_web_origins.split(","),
+        redirect_uris=ui_redirect_uris.split(","),
     )
 
 

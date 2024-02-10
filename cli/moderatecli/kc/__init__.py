@@ -10,6 +10,7 @@ from moderatecli.utils import dict_deep_merge
 
 _JSON_OPEN_METADATA_CLIENT = "open_metadata_client.json"
 _JSON_APISIX_CLIENT = "apisix_client.json"
+_JSON_UI_CLIENT = "ui_client.json"
 
 _logger = logging.getLogger(__name__)
 
@@ -24,6 +25,25 @@ def _get_primkey_from_client_id(
     )
 
     return the_client["id"] if the_client else None
+
+
+def build_ui_client_data(
+    client_id: str, web_origins: List[str], redirect_uris: List[str]
+) -> dict:
+    data = read_data(_JSON_UI_CLIENT)
+
+    return dict_deep_merge(
+        data,
+        {
+            "clientId": client_id,
+            "name": f"Web user interfaces ({client_id})",
+            "redirectUris": redirect_uris,
+            "webOrigins": web_origins,
+            "attributes": {
+                "client.secret.creation.time": int(time.time()),
+            },
+        },
+    )
 
 
 def build_open_metadata_client_data(
@@ -202,6 +222,25 @@ def create_apisix_client(
         moderate_api_resource=moderate_api_resource,
         yatai_resource=yatai_resource,
         resources_type=resources_type,
+    )
+
+    return create_client(
+        keycloak_admin=keycloak_admin,
+        client_id=client_id,
+        client_data=client_data,
+    )
+
+
+def create_ui_client(
+    keycloak_admin: KeycloakAdmin,
+    client_id: str,
+    web_origins: List[str],
+    redirect_uris: List[str],
+) -> dict:
+    client_data = build_ui_client_data(
+        client_id=client_id,
+        web_origins=web_origins,
+        redirect_uris=redirect_uris,
     )
 
     return create_client(
