@@ -22,7 +22,6 @@ class Variables(str, enum.Enum):
     APISIX_CLIENT_RESOURCE_MODERATE_API = "APISIX_CLIENT_RESOURCE_MODERATE_API"
     APISIX_RESOURCES_TYPE = "APISIX_RESOURCES_TYPE"
     OPEN_METADATA_CLIENT_ID = "OPEN_METADATA_CLIENT_ID"
-    OPEN_METADATA_CLIENT_SECRET = "OPEN_METADATA_CLIENT_SECRET"
     OPEN_METADATA_ROOT_URL = "OPEN_METADATA_ROOT_URL"
     UI_CLIENT_ID = "UI_CLIENT_ID"
     UI_WEB_ORIGINS = "UI_WEB_ORIGINS"
@@ -142,9 +141,6 @@ def create_open_metadata_client(
     keycloak_admin_pass: Annotated[
         str, typer.Argument(envvar=Variables.KEYCLOAK_ADMIN_PASS.value)
     ],
-    open_metadata_client_secret: Annotated[
-        str, typer.Argument(envvar=Variables.OPEN_METADATA_CLIENT_SECRET.value)
-    ],
     open_metadata_root_url: Annotated[
         str, typer.Argument(envvar=Variables.OPEN_METADATA_ROOT_URL.value)
     ],
@@ -173,7 +169,6 @@ def create_open_metadata_client(
     moderatecli.kc.create_open_metadata_client(
         keycloak_admin=keycloak_admin,
         client_id=open_metadata_client_id,
-        client_secret=open_metadata_client_secret,
         root_url=open_metadata_root_url,
     )
 

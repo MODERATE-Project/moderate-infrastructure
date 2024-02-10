@@ -39,16 +39,11 @@ def build_ui_client_data(
             "name": f"Web user interfaces ({client_id})",
             "redirectUris": redirect_uris,
             "webOrigins": web_origins,
-            "attributes": {
-                "client.secret.creation.time": int(time.time()),
-            },
         },
     )
 
 
-def build_open_metadata_client_data(
-    client_id: str, client_secret: str, root_url: str
-) -> dict:
+def build_open_metadata_client_data(client_id: str, root_url: str) -> dict:
     data = read_data(_JSON_OPEN_METADATA_CLIENT)
 
     return dict_deep_merge(
@@ -58,12 +53,8 @@ def build_open_metadata_client_data(
             "name": f"Open Metadata client ({client_id})",
             "rootUrl": root_url,
             "adminUrl": root_url,
-            "secret": client_secret,
             "redirectUris": [f"{root_url}/*"],
             "webOrigins": [root_url],
-            "attributes": {
-                "client.secret.creation.time": int(time.time()),
-            },
         },
     )
 
@@ -192,12 +183,10 @@ def create_client(
 def create_open_metadata_client(
     keycloak_admin: KeycloakAdmin,
     client_id: str,
-    client_secret: str,
     root_url: str,
 ) -> dict:
     client_data = build_open_metadata_client_data(
         client_id=client_id,
-        client_secret=client_secret,
         root_url=root_url,
     )
 
