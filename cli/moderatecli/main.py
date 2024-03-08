@@ -49,10 +49,71 @@ class Defaults(str, enum.Enum):
 app = typer.Typer()
 
 
+class Args:
+    postgres_url = Annotated[str, typer.Argument(envvar=Variables.POSTGRES_URL.value)]
+
+    keycloak_admin_pass = Annotated[
+        str, typer.Argument(envvar=Variables.KEYCLOAK_ADMIN_PASS.value)
+    ]
+
+    keycloak_url = Annotated[str, typer.Argument(envvar=Variables.KEYCLOAK_URL.value)]
+
+    keycloak_admin_user = Annotated[
+        str, typer.Argument(envvar=Variables.KEYCLOAK_ADMIN_USER.value)
+    ]
+
+    moderate_realm = Annotated[
+        str, typer.Argument(envvar=Variables.MODERATE_REALM.value)
+    ]
+
+    apisix_client_secret = Annotated[
+        str, typer.Argument(envvar=Variables.APISIX_CLIENT_SECRET.value)
+    ]
+
+    apisix_client_id = Annotated[
+        str, typer.Argument(envvar=Variables.APISIX_CLIENT_ID.value)
+    ]
+
+    apisix_client_resource_yatai = Annotated[
+        str, typer.Argument(envvar=Variables.APISIX_CLIENT_RESOURCE_YATAI.value)
+    ]
+
+    apisix_client_resource_moderate_api = Annotated[
+        str, typer.Argument(envvar=Variables.APISIX_CLIENT_RESOURCE_MODERATE_API.value)
+    ]
+
+    apisix_resources_type = Annotated[
+        str, typer.Argument(envvar=Variables.APISIX_RESOURCES_TYPE.value)
+    ]
+
+    apisix_api_admin_role = Annotated[
+        str, typer.Argument(envvar=Variables.APISIX_API_ADMIN_ROLE.value)
+    ]
+
+    open_metadata_root_url = Annotated[
+        str, typer.Argument(envvar=Variables.OPEN_METADATA_ROOT_URL.value)
+    ]
+
+    open_metadata_client_id = Annotated[
+        str, typer.Argument(envvar=Variables.OPEN_METADATA_CLIENT_ID.value)
+    ]
+
+    ui_client_id = Annotated[str, typer.Argument(envvar=Variables.UI_CLIENT_ID.value)]
+
+    ui_web_origins = Annotated[
+        str, typer.Argument(envvar=Variables.UI_WEB_ORIGINS.value)
+    ]
+
+    ui_redirect_uris = Annotated[
+        str, typer.Argument(envvar=Variables.UI_REDIRECT_URIS.value)
+    ]
+
+    user_username = Annotated[str, typer.Argument(envvar=Variables.USER_USERNAME.value)]
+    user_password = Annotated[str, typer.Argument(envvar=Variables.USER_PASSWORD.value)]
+
+
 @app.command()
-def enable_postgis(
-    postgres_url: Annotated[str, typer.Argument(envvar=Variables.POSTGRES_URL.value)],
-):
+def enable_postgis(postgres_url: Args.postgres_url):
     """Enable PostGIS extensions on the database."""
 
     moderatecli.postgis.enable_postgis(postgres_url=postgres_url)
@@ -60,18 +121,10 @@ def enable_postgis(
 
 @app.command()
 def create_keycloak_realm(
-    keycloak_admin_pass: Annotated[
-        str, typer.Argument(envvar=Variables.KEYCLOAK_ADMIN_PASS.value)
-    ],
-    keycloak_url: Annotated[
-        str, typer.Argument(envvar=Variables.KEYCLOAK_URL.value)
-    ] = Defaults.KEYCLOAK_URL.value,
-    keycloak_admin_user: Annotated[
-        str, typer.Argument(envvar=Variables.KEYCLOAK_ADMIN_USER.value)
-    ] = Defaults.KEYCLOAK_ADMIN_USER.value,
-    moderate_realm: Annotated[
-        str, typer.Argument(envvar=Variables.MODERATE_REALM.value)
-    ] = Defaults.MODERATE_REALM.value,
+    keycloak_admin_pass: Args.keycloak_admin_pass,
+    keycloak_url: Args.keycloak_url = Defaults.KEYCLOAK_URL.value,
+    keycloak_admin_user: Args.keycloak_admin_user = Defaults.KEYCLOAK_ADMIN_USER.value,
+    moderate_realm: Args.moderate_realm = Defaults.MODERATE_REALM.value,
 ):
     """Create the main Keycloak realm for MODERATE."""
 
@@ -89,33 +142,15 @@ def create_keycloak_realm(
 
 @app.command()
 def create_apisix_client(
-    keycloak_admin_pass: Annotated[
-        str, typer.Argument(envvar=Variables.KEYCLOAK_ADMIN_PASS.value)
-    ],
-    apisix_client_secret: Annotated[
-        str, typer.Argument(envvar=Variables.APISIX_CLIENT_SECRET.value)
-    ],
-    moderate_realm: Annotated[
-        str, typer.Argument(envvar=Variables.MODERATE_REALM.value)
-    ] = Defaults.MODERATE_REALM.value,
-    keycloak_url: Annotated[
-        str, typer.Argument(envvar=Variables.KEYCLOAK_URL.value)
-    ] = Defaults.KEYCLOAK_URL.value,
-    keycloak_admin_user: Annotated[
-        str, typer.Argument(envvar=Variables.KEYCLOAK_ADMIN_USER.value)
-    ] = Defaults.KEYCLOAK_ADMIN_USER.value,
-    apisix_client_id: Annotated[
-        str, typer.Argument(envvar=Variables.APISIX_CLIENT_ID.value)
-    ] = Defaults.APISIX_CLIENT_ID.value,
-    apisix_client_resource_yatai: Annotated[
-        str, typer.Argument(envvar=Variables.APISIX_CLIENT_RESOURCE_YATAI.value)
-    ] = Defaults.APISIX_CLIENT_RESOURCE_YATAI.value,
-    apisix_client_resource_moderate_api: Annotated[
-        str, typer.Argument(envvar=Variables.APISIX_CLIENT_RESOURCE_MODERATE_API.value)
-    ] = Defaults.APISIX_CLIENT_RESOURCE_MODERATE_API.value,
-    apisix_resources_type: Annotated[
-        str, typer.Argument(envvar=Variables.APISIX_RESOURCES_TYPE.value)
-    ] = Defaults.APISIX_RESOURCES_TYPE.value,
+    keycloak_admin_pass: Args.keycloak_admin_pass,
+    apisix_client_secret: Args.apisix_client_secret,
+    moderate_realm: Args.moderate_realm = Defaults.MODERATE_REALM.value,
+    keycloak_url: Args.keycloak_url = Defaults.KEYCLOAK_URL.value,
+    keycloak_admin_user: Args.keycloak_admin_user = Defaults.KEYCLOAK_ADMIN_USER.value,
+    apisix_client_id: Args.apisix_client_id = Defaults.APISIX_CLIENT_ID.value,
+    apisix_client_resource_yatai: Args.apisix_client_resource_yatai = Defaults.APISIX_CLIENT_RESOURCE_YATAI.value,
+    apisix_client_resource_moderate_api: Args.apisix_client_resource_moderate_api = Defaults.APISIX_CLIENT_RESOURCE_MODERATE_API.value,
+    apisix_resources_type: Args.apisix_resources_type = Defaults.APISIX_RESOURCES_TYPE.value,
 ):
     """Create the APISIX client."""
 
@@ -138,24 +173,12 @@ def create_apisix_client(
 
 @app.command()
 def create_open_metadata_client(
-    keycloak_admin_pass: Annotated[
-        str, typer.Argument(envvar=Variables.KEYCLOAK_ADMIN_PASS.value)
-    ],
-    open_metadata_root_url: Annotated[
-        str, typer.Argument(envvar=Variables.OPEN_METADATA_ROOT_URL.value)
-    ],
-    moderate_realm: Annotated[
-        str, typer.Argument(envvar=Variables.MODERATE_REALM.value)
-    ] = Defaults.MODERATE_REALM.value,
-    keycloak_url: Annotated[
-        str, typer.Argument(envvar=Variables.KEYCLOAK_URL.value)
-    ] = Defaults.KEYCLOAK_URL.value,
-    keycloak_admin_user: Annotated[
-        str, typer.Argument(envvar=Variables.KEYCLOAK_ADMIN_USER.value)
-    ] = Defaults.KEYCLOAK_ADMIN_USER.value,
-    open_metadata_client_id: Annotated[
-        str, typer.Argument(envvar=Variables.OPEN_METADATA_CLIENT_ID.value)
-    ] = Defaults.OPEN_METADATA_CLIENT_ID.value,
+    keycloak_admin_pass: Args.keycloak_admin_pass,
+    open_metadata_root_url: Args.open_metadata_root_url,
+    moderate_realm: Args.moderate_realm = Defaults.MODERATE_REALM.value,
+    keycloak_url: Args.keycloak_url = Defaults.KEYCLOAK_URL.value,
+    keycloak_admin_user: Args.keycloak_admin_user = Defaults.KEYCLOAK_ADMIN_USER.value,
+    open_metadata_client_id: Args.open_metadata_client_id = Defaults.OPEN_METADATA_CLIENT_ID.value,
 ):
     """Create the Open Metadata client."""
 
@@ -185,27 +208,13 @@ def create_open_metadata_client(
 
 @app.command()
 def create_ui_client(
-    keycloak_admin_pass: Annotated[
-        str, typer.Argument(envvar=Variables.KEYCLOAK_ADMIN_PASS.value)
-    ],
-    moderate_realm: Annotated[
-        str, typer.Argument(envvar=Variables.MODERATE_REALM.value)
-    ] = Defaults.MODERATE_REALM.value,
-    keycloak_url: Annotated[
-        str, typer.Argument(envvar=Variables.KEYCLOAK_URL.value)
-    ] = Defaults.KEYCLOAK_URL.value,
-    keycloak_admin_user: Annotated[
-        str, typer.Argument(envvar=Variables.KEYCLOAK_ADMIN_USER.value)
-    ] = Defaults.KEYCLOAK_ADMIN_USER.value,
-    ui_client_id: Annotated[
-        str, typer.Argument(envvar=Variables.UI_CLIENT_ID.value)
-    ] = Defaults.UI_CLIENT_ID.value,
-    ui_web_origins: Annotated[
-        str, typer.Argument(envvar=Variables.UI_WEB_ORIGINS.value)
-    ] = Defaults.UI_WEB_ORIGINS.value,
-    ui_redirect_uris: Annotated[
-        str, typer.Argument(envvar=Variables.UI_REDIRECT_URIS.value)
-    ] = Defaults.UI_REDIRECT_URIS.value,
+    keycloak_admin_pass: Args.keycloak_admin_pass,
+    moderate_realm: Args.moderate_realm = Defaults.MODERATE_REALM.value,
+    keycloak_url: Args.keycloak_url = Defaults.KEYCLOAK_URL.value,
+    keycloak_admin_user: Args.keycloak_admin_user = Defaults.KEYCLOAK_ADMIN_USER.value,
+    ui_client_id: Args.ui_client_id = Defaults.UI_CLIENT_ID.value,
+    ui_web_origins: Args.ui_web_origins = Defaults.UI_WEB_ORIGINS.value,
+    ui_redirect_uris: Args.ui_redirect_uris = Defaults.UI_REDIRECT_URIS.value,
 ):
     """Create the User Interfaces client."""
 
@@ -226,24 +235,12 @@ def create_ui_client(
 
 @app.command()
 def create_api_admin_role(
-    keycloak_admin_pass: Annotated[
-        str, typer.Argument(envvar=Variables.KEYCLOAK_ADMIN_PASS.value)
-    ],
-    apisix_api_admin_role: Annotated[
-        str, typer.Argument(envvar=Variables.APISIX_API_ADMIN_ROLE.value)
-    ] = Defaults.APISIX_API_ADMIN_ROLE.value,
-    keycloak_url: Annotated[
-        str, typer.Argument(envvar=Variables.KEYCLOAK_URL.value)
-    ] = Defaults.KEYCLOAK_URL.value,
-    keycloak_admin_user: Annotated[
-        str, typer.Argument(envvar=Variables.KEYCLOAK_ADMIN_USER.value)
-    ] = Defaults.KEYCLOAK_ADMIN_USER.value,
-    moderate_realm: Annotated[
-        str, typer.Argument(envvar=Variables.MODERATE_REALM.value)
-    ] = Defaults.MODERATE_REALM.value,
-    apisix_client_id: Annotated[
-        str, typer.Argument(envvar=Variables.APISIX_CLIENT_ID.value)
-    ] = Defaults.APISIX_CLIENT_ID.value,
+    keycloak_admin_pass: Args.keycloak_admin_pass,
+    apisix_api_admin_role: Args.apisix_api_admin_role = Defaults.APISIX_API_ADMIN_ROLE.value,
+    keycloak_url: Args.keycloak_url = Defaults.KEYCLOAK_URL.value,
+    keycloak_admin_user: Args.keycloak_admin_user = Defaults.KEYCLOAK_ADMIN_USER.value,
+    moderate_realm: Args.moderate_realm = Defaults.MODERATE_REALM.value,
+    apisix_client_id: Args.apisix_client_id = Defaults.APISIX_CLIENT_ID.value,
 ):
     """Create the API Admin role for APISIX."""
 
@@ -263,26 +260,14 @@ def create_api_admin_role(
 
 @app.command()
 def create_keycloak_user(
-    keycloak_admin_pass: Annotated[
-        str, typer.Argument(envvar=Variables.KEYCLOAK_ADMIN_PASS.value)
-    ],
-    username: Annotated[str, typer.Argument(envvar=Variables.USER_USERNAME.value)],
-    password: Annotated[str, typer.Argument(envvar=Variables.USER_PASSWORD.value)],
-    keycloak_url: Annotated[
-        str, typer.Argument(envvar=Variables.KEYCLOAK_URL.value)
-    ] = Defaults.KEYCLOAK_URL.value,
-    keycloak_admin_user: Annotated[
-        str, typer.Argument(envvar=Variables.KEYCLOAK_ADMIN_USER.value)
-    ] = Defaults.KEYCLOAK_ADMIN_USER.value,
-    moderate_realm: Annotated[
-        str, typer.Argument(envvar=Variables.MODERATE_REALM.value)
-    ] = Defaults.MODERATE_REALM.value,
-    apisix_client_id: Annotated[
-        str, typer.Argument(envvar=Variables.APISIX_CLIENT_ID.value)
-    ] = Defaults.APISIX_CLIENT_ID.value,
-    apisix_api_admin_role: Annotated[
-        str, typer.Argument(envvar=Variables.APISIX_API_ADMIN_ROLE.value)
-    ] = Defaults.APISIX_API_ADMIN_ROLE.value,
+    keycloak_admin_pass: Args.keycloak_admin_pass,
+    user_username: Args.user_username,
+    user_password: Args.user_password,
+    keycloak_url: Args.keycloak_url = Defaults.KEYCLOAK_URL.value,
+    keycloak_admin_user: Args.keycloak_admin_user = Defaults.KEYCLOAK_ADMIN_USER.value,
+    moderate_realm: Args.moderate_realm = Defaults.MODERATE_REALM.value,
+    apisix_client_id: Args.apisix_client_id = Defaults.APISIX_CLIENT_ID.value,
+    apisix_api_admin_role: Args.apisix_api_admin_role = Defaults.APISIX_API_ADMIN_ROLE.value,
 ):
     """Create a new user in the MODERATE realm."""
 
@@ -295,8 +280,8 @@ def create_keycloak_user(
 
     moderatecli.kc.create_user(
         keycloak_admin=keycloak_admin,
-        username=username,
-        password=password,
+        username=user_username,
+        password=user_password,
         client_roles={apisix_client_id: [apisix_api_admin_role]},
     )
 
