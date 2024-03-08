@@ -223,6 +223,7 @@ module "apisix" {
   keycloak_client_secret            = module.keycloak_init.apisix_client_secret
   keycloak_permissions_yatai        = module.keycloak_init.apisix_client_resource_yatai
   keycloak_permissions_moderate_api = module.keycloak_init.apisix_client_resource_moderate_api
+  cors_allow_origins                = ["https://${var.domain_platform_ui}"]
 }
 
 module "dagster" {

@@ -85,3 +85,9 @@ variable "proxy_body_size" {
   default     = "1024m"
   description = "Maximum allowed size of the client request body. This is an explicit limit on the size of the uploaded files."
 }
+
+variable "cors_allow_origins" {
+  type        = list(string)
+  default     = ["*"]
+  description = "Origins to allow CORS."
+}

@@ -18,6 +18,9 @@ routes:
         permissions: ["${keycloak_permissions_yatai}"]
         ssl_verify: false
         password_grant_token_generation_incoming_uri: /api/token
+      cors:
+        allow_origins: ${cors_allow_origins}
+        allow_credential: false
   - uri: /docs
     host: ${host_moderate_api}
     service_id: 1002
@@ -39,6 +42,9 @@ routes:
         permissions: ["${keycloak_permissions_moderate_api}"]
         ssl_verify: false
         password_grant_token_generation_incoming_uri: /api/token
+      cors:
+        allow_origins: ${cors_allow_origins}
+        allow_credential: false
 services:
   - id: 1001
     upstream_id: 2001

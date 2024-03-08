@@ -88,6 +88,11 @@ variable "domain_open_metadata" {
   description = "Public DNS domain of the Open Metadata web application"
 }
 
+variable "domain_platform_ui" {
+  type        = string
+  description = "Public DNS domain of the Platform Web UI"
+}
+
 variable "open_metadata_token" {
   type        = string
   default     = null

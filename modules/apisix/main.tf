@@ -69,6 +69,7 @@ resource "kubernetes_config_map" "apisix" {
       keycloak_client_secret            = var.keycloak_client_secret
       keycloak_permissions_yatai        = var.keycloak_permissions_yatai
       keycloak_permissions_moderate_api = var.keycloak_permissions_moderate_api
+      cors_allow_origins                = join(",", var.cors_allow_origins)
     })
   }
 }
