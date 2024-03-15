@@ -2,7 +2,7 @@ terraform {
   required_providers {
     google = {
       source  = "hashicorp/google"
-      version = "~> 5.0"
+      version = "~> 5.20.0"
     }
 
     kubectl = {
@@ -42,6 +42,14 @@ data "google_client_config" "default" {}
 
 data "google_client_openid_userinfo" "provider_identity" {}
 
+resource "google_project_service" "gcp_services" {
+  for_each                   = toset(var.project_gcp_service_list)
+  project                    = var.project_id
+  service                    = each.key
+  disable_dependent_services = false
+  disable_on_destroy         = false
+}
+
 module "gke_cluster" {
   source               = "../modules/gke_cluster"
   project_id           = local.gke_project_id
@@ -49,6 +57,8 @@ module "gke_cluster" {
   zones                = var.zones
   registry_project_ids = [var.project_id_common]
   enable_backup        = true
+  nodes_min_count      = var.nodes_min_count
+  nodes_max_count      = var.nodes_max_count
   # ToDo: This should be true when in production
   regional = false
   # ToDo: This is set to 0 to enable immediate destruction during development

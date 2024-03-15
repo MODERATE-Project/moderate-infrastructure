@@ -28,6 +28,6 @@ variable "community_extensions" {
 
 variable "volume_size_gi" {
   type        = number
-  default     = 10
+  default     = 20
   description = "Size of the persistent volume in GiB."
 }

@@ -4,7 +4,7 @@ locals {
 
 module "gke" {
   source                     = "terraform-google-modules/kubernetes-engine/google//modules/private-cluster"
-  version                    = "~> 29.0.0"
+  version                    = "~> 30.2.0"
   kubernetes_version         = var.kubernetes_version == null ? "latest" : var.kubernetes_version
   release_channel            = var.kubernetes_version == null ? "STABLE" : "UNSPECIFIED"
   project_id                 = var.project_id
@@ -34,6 +34,7 @@ module "gke" {
       name            = local.main_node_pool_name
       machine_type    = var.nodes_machine_type
       node_locations  = join(",", var.zones)
+      autoscaling     = true
       min_count       = var.nodes_min_count
       max_count       = var.nodes_max_count
       local_ssd_count = 0

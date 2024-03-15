@@ -1,3 +1,18 @@
+# Attribution to: https://stackoverflow.com/a/67210655
+variable "project_gcp_service_list" {
+  description = "The list of APIs necessary for the project"
+  type        = list(string)
+  default = [
+    "compute.googleapis.com",
+    "logging.googleapis.com",
+    "container.googleapis.com",
+    "monitoring.googleapis.com",
+    "gkebackup.googleapis.com",
+    "servicenetworking.googleapis.com",
+    "sqladmin.googleapis.com"
+  ]
+}
+
 variable "project_id" {
   type        = string
   description = "Globally unique identifier for this project in Google Cloud"
@@ -97,4 +112,16 @@ variable "open_metadata_token" {
   type        = string
   default     = null
   description = "Token of the Open Metadata ingestion bot. This should be defined after the deployment as the token has to be retrieved manually from the Open Metadata web UI."
+}
+
+variable "nodes_min_count" {
+  type        = number
+  description = "Minimum number of nodes per zone in the Kubernetes cluster"
+  default     = 1
+}
+
+variable "nodes_max_count" {
+  type        = number
+  description = "Maximum number of nodes per zone in the Kubernetes cluster"
+  default     = 2
 }

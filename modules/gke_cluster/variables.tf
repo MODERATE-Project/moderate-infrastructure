@@ -19,7 +19,6 @@ variable "kubernetes_version" {
   default     = null
 }
 
-
 variable "nodes_machine_type" {
   type        = string
   description = "Machine type for nodes"
@@ -28,14 +27,14 @@ variable "nodes_machine_type" {
 
 variable "nodes_min_count" {
   type        = number
-  description = "Minimum number of nodes in each zone"
+  description = "Minimum number of nodes in the NodePool. Must be >=0 and <= max_count. Should be used when autoscaling is true. Cannot be used with total limits."
   default     = 1
 }
 
 variable "nodes_max_count" {
   type        = number
-  description = "Maximum number of nodes in each zone"
-  default     = 1
+  description = "Maximum number of nodes in the NodePool. Must be >= min_count. Cannot be used with total limits."
+  default     = 2
 }
 
 variable "registry_project_ids" {

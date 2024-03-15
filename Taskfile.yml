@@ -1,29 +1,37 @@
 version: "3"
 
 vars:
-  PROJECT_ID: moderate-prod
-  REGION: europe-west1-b
   CLI_IMAGE_LOCAL_NAME: moderate-cli
   CLI_IMAGE_REMOTE_NAME: agmangas/moderate-cli
-  CLI_IMAGE_REMOTE_TAG:
-    sh: cd {{.ROOT_DIR}}/cli && poetry version --short 2> echo
   DAGSTER_NAMESPACE: dagster
   DAGSTER_WEBSERVER_PORT: 8181
+
+dotenv:
+  - .env.local
 
 tasks:
   get-credentials:
     desc: Configure kubectl with credentials for the GKE cluster
+    requires:
+      vars:
+        - PROJECT_ID_PRODUCTION
+        - REGION_PRODUCTION
     cmds:
       - >
         gcloud container clusters get-credentials gke-cluster 
-        --region {{.REGION}} 
-        --project {{.PROJECT_ID}}
+        --region {{.REGION_PRODUCTION}} 
+        --project {{.PROJECT_ID_PRODUCTION}}
 
   update-dns:
     desc: Update DNS records to point to the cluster load balancer
     deps:
       - get-credentials
+    requires:
+      vars:
+        - PROJECT_ID_COMMON
     dir: "{{.ROOT_DIR}}/scripts"
+    env:
+      PROJECT_ID: "{{.PROJECT_ID_COMMON}}"
     cmds:
       - ./update-dns.sh
 
@@ -44,6 +52,9 @@ tasks:
 
   push-cli-image:
     desc: Build and push the MODERATE CLI image to the public registry
+    vars:
+      CLI_IMAGE_REMOTE_TAG:
+        sh: cd {{.ROOT_DIR}}/cli && poetry version --short 2> echo
     prompt: 🚧 This will push the CLI image to the public registry with tag '{{.CLI_IMAGE_REMOTE_TAG}}'. Are you sure?
     cmds:
       - docker buildx build --platform=linux/amd64 -t {{.CLI_IMAGE_LOCAL_NAME}} {{.ROOT_DIR}}/cli
