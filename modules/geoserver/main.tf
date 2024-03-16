@@ -161,6 +161,15 @@ resource "kubernetes_deployment" "geoserver" {
             name  = "ROOT_WEBAPP_REDIRECT"
             value = true
           }
+          # https://github.com/kartoza/docker-geoserver/issues/293#issuecomment-1235755773
+          env {
+            name  = "HTTP_SCHEME"
+            value = "https"
+          }
+          env {
+            name  = "HTTP_PROXY_NAME"
+            value = var.domain
+          }
         }
         volume {
           name = local.vol_name
