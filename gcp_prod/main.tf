@@ -9,11 +9,6 @@ terraform {
       source  = "alekc/kubectl"
       version = "~> 2.0.4"
     }
-
-    google-beta = {
-      source  = "hashicorp/google-beta"
-      version = "~> 4"
-    }
   }
 }
 
@@ -116,11 +111,6 @@ module "postgres_cloud_sql" {
   project_id         = var.project_id
   region             = var.region
   cluster_network_id = module.gke_cluster.cluster_network_id
-
-  # https://github.com/hashicorp/terraform-provider-google/issues/16275#issuecomment-1825752152
-  providers = {
-    google-beta = google-beta
-  }
 }
 
 module "postgres_cloud_sql_proxy" {
