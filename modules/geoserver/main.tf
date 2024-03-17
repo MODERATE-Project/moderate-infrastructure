@@ -96,29 +96,6 @@ resource "kubernetes_deployment" "geoserver" {
               memory = "4Gi"
             }
           }
-          # ToDo: Fix this
-          # liveness_probe {
-          #   http_get {
-          #     path = "/geoserver/web"
-          #     port = local.geoserver_port
-          #   }
-          #   initial_delay_seconds = 120
-          #   period_seconds        = 20
-          #   timeout_seconds       = 10
-          #   success_threshold     = 1
-          #   failure_threshold     = 3
-          # }
-          # readiness_probe {
-          #   http_get {
-          #     path = "/geoserver/web"
-          #     port = local.geoserver_port
-          #   }
-          #   initial_delay_seconds = 120
-          #   period_seconds        = 20
-          #   timeout_seconds       = 10
-          #   success_threshold     = 1
-          #   failure_threshold     = 6
-          # }
           # https://github.com/kartoza/docker-geoserver/blob/ffecc3cedf0de65b87d23c92e06b96214e07c6b2/.env
           env_from {
             secret_ref {
