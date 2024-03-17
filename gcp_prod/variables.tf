@@ -108,6 +108,11 @@ variable "domain_platform_ui" {
   description = "Public DNS domain of the Platform Web UI"
 }
 
+variable "domain_tool_lec" {
+  type        = string
+  description = "Public DNS domain of the LEC Location Assessment tool"
+}
+
 variable "open_metadata_token" {
   type        = string
   default     = null

@@ -249,3 +249,11 @@ module "dagster" {
   s3_endpoint_url         = module.api.api_s3_endpoint_url
   s3_region               = module.api.api_s3_region
 }
+
+module "tool_lec" {
+  depends_on          = [module.cert_manager]
+  source              = "../modules/tool_lec"
+  domain              = var.domain_tool_lec
+  cert_manager_issuer = module.cert_manager.cluster_issuer_prod_name
+  geoserver_url       = "http://${module.geoserver.geoserver_service_host_port}"
+}
