@@ -45,7 +45,7 @@ resource "google_sql_database_instance" "postgres_sql_instance" {
     }
 
     ip_configuration {
-      ipv4_enabled                                  = false
+      ipv4_enabled                                  = true
       private_network                               = var.cluster_network_id
       enable_private_path_for_google_cloud_services = true
     }
