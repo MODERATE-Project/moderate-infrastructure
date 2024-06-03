@@ -130,3 +130,9 @@ variable "nodes_max_count" {
   description = "Maximum number of nodes per zone in the Kubernetes cluster"
   default     = 2
 }
+
+variable "trust_l2_private_key" {
+  type        = string
+  description = "Private key of the wallet that will act as the proxy for the IOTA network"
+  sensitive   = true
+}

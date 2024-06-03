@@ -25,3 +25,9 @@ variable "mongo_database" {
   description = "Name of the MongoDB database"
   default     = "moderatetrust"
 }
+
+variable "l2_private_key" {
+  type        = string
+  description = "Private key of the wallet that will act as the proxy for the IOTA network"
+  sensitive   = true
+}

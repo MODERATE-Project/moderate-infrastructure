@@ -11,6 +11,7 @@ locals {
   municipalities_name = "tool-lec-municipalities"
   buildings_name      = "tool-lec-buildings"
   namespace           = var.namespace == null ? one(kubernetes_namespace.tool_lec[*].id) : var.namespace
+  image_tag           = "4d518c40fc30b7e1acbbd3455f7a72977e4f352a"
 }
 
 // trunk-ignore(checkov/CKV_K8S_8)
@@ -37,7 +38,7 @@ resource "kubernetes_deployment" "tool_lec_municipalities" {
       }
       spec {
         container {
-          image             = "europe-west1-docker.pkg.dev/moderate-common/moderate-images/tool-lec-municipalities-svc:main"
+          image             = "europe-west1-docker.pkg.dev/moderate-common/moderate-images/tool-lec-municipalities-svc:${local.image_tag}"
           name              = "municipalities-svc"
           image_pull_policy = "Always"
           security_context {
@@ -109,7 +110,7 @@ resource "kubernetes_deployment" "tool_lec_buildings" {
       }
       spec {
         container {
-          image             = "europe-west1-docker.pkg.dev/moderate-common/moderate-images/tool-lec-buildings-svc:main"
+          image             = "europe-west1-docker.pkg.dev/moderate-common/moderate-images/tool-lec-buildings-svc:${local.image_tag}"
           name              = "buildings-svc"
           image_pull_policy = "Always"
           security_context {
@@ -192,7 +193,7 @@ resource "kubernetes_deployment" "tool_lec_frontend" {
       }
       spec {
         container {
-          image             = "europe-west1-docker.pkg.dev/moderate-common/moderate-images/tool-lec-frontend:main"
+          image             = "europe-west1-docker.pkg.dev/moderate-common/moderate-images/tool-lec-frontend:${local.image_tag}"
           name              = "frontend"
           image_pull_policy = "Always"
           security_context {

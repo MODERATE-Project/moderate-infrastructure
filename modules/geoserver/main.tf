@@ -47,6 +47,10 @@ resource "kubernetes_secret" "geoserver_secrets" {
   }
 }
 
+locals {
+  image_tag = "eddbe1ae6de875d4748d212c420302fa13c8d5c5"
+}
+
 // trunk-ignore(checkov/CKV_K8S_8)
 // trunk-ignore(checkov/CKV_K8S_9)
 // trunk-ignore(checkov/CKV_K8S_35): Prefer using secrets as files over secrets as environment variables
@@ -73,7 +77,7 @@ resource "kubernetes_deployment" "geoserver" {
       }
       spec {
         container {
-          image             = "europe-west1-docker.pkg.dev/moderate-common/moderate-images/moderate-geoserver:main"
+          image             = "europe-west1-docker.pkg.dev/moderate-common/moderate-images/moderate-geoserver:${local.image_tag}"
           name              = "geoserver"
           image_pull_policy = "Always"
           security_context {

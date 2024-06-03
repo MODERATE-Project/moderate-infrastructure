@@ -36,6 +36,7 @@ locals {
     MONGO_DATABASE                  = var.mongo_database
     STRONGHOLD_PASSWORD             = random_password.iota_wallet_stronghold_password.result
     KEY_STORAGE_STRONGHOLD_PASSWORD = random_password.iota_identity_key_storage_stronghold_password.result
+    L2_PRIVATE_KEY                  = var.l2_private_key
   }
 
   merged_secrets_data = merge(local.dot_env_data, local.secrets_data)
@@ -48,6 +49,10 @@ resource "kubernetes_secret" "moderate_trust_secrets" {
   }
 
   data = local.merged_secrets_data
+}
+
+locals {
+  image_tag = "931b811e31d5a956e2633bae05d6a5edb7bc69b0"
 }
 
 # trunk-ignore(checkov/CKV_K8S_35,checkov/CKV_K8S_8,checkov/CKV_K8S_9)
@@ -75,7 +80,7 @@ resource "kubernetes_deployment" "moderate_trust" {
       }
       spec {
         container {
-          image             = "europe-west1-docker.pkg.dev/moderate-common/moderate-images/trust-service:main"
+          image             = "europe-west1-docker.pkg.dev/moderate-common/moderate-images/trust-service:${local.image_tag}"
           name              = "trust"
           image_pull_policy = "Always"
           security_context {

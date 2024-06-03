@@ -199,6 +199,7 @@ module "trust" {
   mongo_endpoint = "${module.mongo.mongo_internal_host}:${module.mongo.mongo_internal_port}"
   mongo_username = module.mongo.mongo_admin_user
   mongo_password = module.mongo.mongo_admin_pass
+  l2_private_key = var.trust_l2_private_key
 }
 
 module "api" {
