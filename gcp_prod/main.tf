@@ -159,14 +159,6 @@ module "keycloak_init" {
   open_metadata_root_url = "https://${var.domain_open_metadata}"
 }
 
-module "timescale" {
-  depends_on                  = [module.cert_manager]
-  source                      = "../modules/timescale"
-  grafana_enable              = true
-  grafana_cert_manager_issuer = module.cert_manager.cluster_issuer_prod_name
-  grafana_domain              = var.domain_timescale_grafana
-}
-
 module "geoserver" {
   depends_on          = [module.cert_manager]
   source              = "../modules/geoserver"

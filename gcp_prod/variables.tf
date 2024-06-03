@@ -88,11 +88,6 @@ variable "domain_geoserver" {
   description = "Public DNS domain of the Geoserver service"
 }
 
-variable "domain_timescale_grafana" {
-  type        = string
-  description = "Public DNS domain of the companion Grafana dashboard for the Timescale database"
-}
-
 variable "domain_dagster" {
   type        = string
   description = "Public DNS domain of the Dagster web UI"
