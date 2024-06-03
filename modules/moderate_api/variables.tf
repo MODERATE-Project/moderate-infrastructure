@@ -28,3 +28,11 @@ variable "trust_service_endpoint_url" {
   type        = string
   description = "URL of the Trust Services endpoint"
 }
+
+variable "domain_ui" {
+  type = string
+}
+
+variable "cert_manager_issuer" {
+  type = string
+}

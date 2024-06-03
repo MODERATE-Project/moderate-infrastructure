@@ -14,6 +14,7 @@ locals {
   postgres_port   = 5432
   s3_endpoint_url = "https://storage.googleapis.com"
   s3_region       = "auto"
+  image_tag       = "main"
 }
 
 resource "random_password" "password_db" {
@@ -87,7 +88,7 @@ resource "kubernetes_deployment" "moderate_api" {
       spec {
         service_account_name = module.cloud_sql_proxy_wi.k8s_service_account_name
         container {
-          image             = "europe-west1-docker.pkg.dev/moderate-common/moderate-images/moderate-api:latest"
+          image             = "europe-west1-docker.pkg.dev/moderate-common/moderate-images/moderate-api:${local.image_tag}"
           name              = "api"
           image_pull_policy = "Always"
           security_context {

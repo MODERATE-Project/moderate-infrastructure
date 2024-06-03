@@ -37,3 +37,8 @@ variable "api_username" {
   description = "The username of the API user."
   default     = "tfapiuser"
 }
+
+variable "platform_ui_url" {
+  type        = string
+  description = "The URL of the platform UI."
+}

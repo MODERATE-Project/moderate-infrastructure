@@ -157,6 +157,7 @@ module "keycloak_init" {
   keycloak_admin_pass    = module.keycloak.keycloak_admin_pass
   keycloak_url           = "http://${module.keycloak.keycloak_service_host_port}"
   open_metadata_root_url = "https://${var.domain_open_metadata}"
+  platform_ui_url        = "https://${var.domain_platform_ui}"
 }
 
 module "geoserver" {
@@ -202,6 +203,8 @@ module "api" {
   cloud_sql_instance_name            = module.postgres_cloud_sql.sql_instance_name
   cloud_sql_instance_connection_name = module.postgres_cloud_sql.sql_instance_connection_name
   trust_service_endpoint_url         = module.trust.trust_internal_url
+  domain_ui                          = var.domain_platform_ui
+  cert_manager_issuer                = module.cert_manager.cluster_issuer_prod_name
 }
 
 module "apisix" {

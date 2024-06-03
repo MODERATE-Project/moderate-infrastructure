@@ -54,6 +54,8 @@ resource "kubernetes_secret" "keycloak_init" {
     USER_USERNAME                       = local.moderate_api_username
     USER_PASSWORD                       = random_password.moderate_api_password.result
     APISIX_API_ADMIN_ROLE               = local.api_admin_role
+    UI_WEB_ORIGINS                      = var.platform_ui_url
+    UI_REDIRECT_URIS                    = "${var.platform_ui_url}/*"
   }
 }
 
@@ -64,6 +66,7 @@ locals {
     "${local.cli_name} create-keycloak-realm",
     "${local.cli_name} create-apisix-client",
     "${local.cli_name} create-open-metadata-client",
+    "${local.cli_name} create-ui-client",
     "${local.cli_name} create-api-admin-role",
     "${local.cli_name} create-keycloak-user"
   ]
