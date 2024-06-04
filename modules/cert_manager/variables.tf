@@ -5,7 +5,7 @@ variable "after_install_crds_sleep" {
 
 variable "cert_manager_chart_version" {
   type    = string
-  default = "1.13.0"
+  default = "1.14.5"
 }
 
 variable "cluster_admin_account" {
