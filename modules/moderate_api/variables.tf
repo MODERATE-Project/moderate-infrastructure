@@ -36,3 +36,14 @@ variable "domain_ui" {
 variable "cert_manager_issuer" {
   type = string
 }
+
+variable "open_metadata_endpoint_url" {
+  type        = string
+  description = "Base URL of the Open Metadata API"
+}
+
+variable "open_metadata_bearer_token" {
+  type        = string
+  description = "Bearer token for the Open Metadata API"
+  default     = null
+}

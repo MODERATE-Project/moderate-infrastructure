@@ -114,6 +114,12 @@ variable "open_metadata_token" {
   description = "Token of the Open Metadata ingestion bot. This should be defined after the deployment as the token has to be retrieved manually from the Open Metadata web UI."
 }
 
+variable "open_metadata_api_token" {
+  type        = string
+  default     = null
+  description = "Token used by the Platform API to interact with the internal Open Metadata service. This should be defined after the deployment as the token has to be retrieved manually from the Open Metadata web UI."
+}
+
 variable "nodes_min_count" {
   type        = number
   description = "Minimum number of nodes per zone in the Kubernetes cluster"

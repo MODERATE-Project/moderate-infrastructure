@@ -51,11 +51,16 @@ The DNS records for the `moderate.cloud` domain are managed by Google's Cloud DN
 
 > Please note that when using the `task apply-prod` task this will be automatically done for you.
 
-#### Configuring the OpenMetadata JWT token
+#### Configuring the OpenMetadata JWT tokens
 
-The Dagster assets that run the metadata workflows require a JWT token to authenticate with the OpenMetadata service. However, this token can only be generated manually in the OpenMetadata web UI. To do so, access the *Settings > Integrations > Bots* section and revoke the existing token to generate a new one.
+There are two OpenMetadata tokens that need to be configured:
 
-Then, add the new token to the `open_metadata_token` variable in the `variables.auto.tfvars` file of the `gcp_prod` Terraform module. Re-apply the Terraform configuration to update the Kubernetes secrets.
+* One for the Dagster assets that run the metadata workflows.
+* Another for the Platform's API.
+
+These tokens can only be generated manually in the OpenMetadata web UI. To do so, access the *Settings > Bots* section in the OpenMetadata UI.
+
+Then, add the new tokens to the `open_metadata_token` and `open_metadata_api_token` variables in the `variables.auto.tfvars` file of the `gcp_prod` Terraform module. Re-apply the Terraform configuration to update the Kubernetes secrets.
 
 #### Edit authentication flows in Keycloak
 

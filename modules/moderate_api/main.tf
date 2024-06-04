@@ -40,17 +40,23 @@ resource "kubernetes_secret" "moderate_api_secrets" {
     namespace = local.namespace
   }
 
-  data = {
-    # https://cloud.google.com/storage/docs/aws-simple-migration
-    MODERATE_API_S3__ACCESS_KEY              = google_storage_hmac_key.api_bucket_hmac_key.access_id
-    MODERATE_API_S3__SECRET_KEY              = google_storage_hmac_key.api_bucket_hmac_key.secret
-    MODERATE_API_S3__ENDPOINT_URL            = local.s3_endpoint_url
-    MODERATE_API_S3__USE_SSL                 = "true"
-    MODERATE_API_S3__REGION                  = local.s3_region
-    MODERATE_API_S3__BUCKET                  = module.bucket.buckets_map[local.api_bucket_name].name
-    MODERATE_API_POSTGRES_URL                = "postgresql+asyncpg://${google_sql_user.sql_user.name}:${google_sql_user.sql_user.password}@localhost:${local.postgres_port}/${google_sql_database.sql_database.name}"
-    MODERATE_API_TRUST_SERVICE__ENDPOINT_URL = var.trust_service_endpoint_url
-  }
+  data = merge(
+    {
+      # https://cloud.google.com/storage/docs/aws-simple-migration
+      MODERATE_API_S3__ACCESS_KEY              = google_storage_hmac_key.api_bucket_hmac_key.access_id
+      MODERATE_API_S3__SECRET_KEY              = google_storage_hmac_key.api_bucket_hmac_key.secret
+      MODERATE_API_S3__ENDPOINT_URL            = local.s3_endpoint_url
+      MODERATE_API_S3__USE_SSL                 = "true"
+      MODERATE_API_S3__REGION                  = local.s3_region
+      MODERATE_API_S3__BUCKET                  = module.bucket.buckets_map[local.api_bucket_name].name
+      MODERATE_API_POSTGRES_URL                = "postgresql+asyncpg://${google_sql_user.sql_user.name}:${google_sql_user.sql_user.password}@localhost:${local.postgres_port}/${google_sql_database.sql_database.name}"
+      MODERATE_API_TRUST_SERVICE__ENDPOINT_URL = var.trust_service_endpoint_url
+    },
+    var.open_metadata_bearer_token == null || var.open_metadata_bearer_token == "" ? {} : {
+      MODERATE_API_OPEN_METADATA_SERVICE__ENDPOINT_URL = var.open_metadata_endpoint_url
+      MODERATE_API_OPEN_METADATA_SERVICE__BEARER_TOKEN = var.open_metadata_bearer_token
+    }
+  )
 }
 
 module "cloud_sql_proxy_wi" {
@@ -70,6 +76,10 @@ resource "kubernetes_deployment" "moderate_api" {
     labels = {
       app = local.app_name
     }
+  }
+
+  lifecycle {
+    replace_triggered_by = [kubernetes_secret.moderate_api_secrets]
   }
 
   spec {

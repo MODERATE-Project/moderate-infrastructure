@@ -205,6 +205,8 @@ module "api" {
   trust_service_endpoint_url         = module.trust.trust_internal_url
   domain_ui                          = var.domain_platform_ui
   cert_manager_issuer                = module.cert_manager.cluster_issuer_prod_name
+  open_metadata_endpoint_url         = "http://${module.open_metadata.open_metadata_service_host_port}"
+  open_metadata_bearer_token         = var.open_metadata_api_token
 }
 
 module "apisix" {
