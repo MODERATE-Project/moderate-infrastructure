@@ -70,6 +70,10 @@ provider "kubectl" {
   host                   = module.gke_cluster.kubernetes_host
   token                  = data.google_client_config.default.access_token
   cluster_ca_certificate = module.gke_cluster.kubernetes_cluster_ca_cert
+  # Disable loading the local kubeconfig file. This is necessary because of this error:
+  # Error: failed to create kubernetes rest client for read of resource: 
+  # Get "http://localhost/api?timeout=32s": dial tcp [::1]:80: connect: connection refused
+  load_config_file = false
 }
 
 provider "helm" {
