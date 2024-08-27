@@ -31,9 +31,11 @@ routes:
     host: ${host_moderate_api}
     vars: [[uri, ~~, public(\/|$)]]
     service_id: 1002
+    enable_websocket: true
   - uri: /*
     host: ${host_moderate_api}
     service_id: 1002
+    enable_websocket: true
     plugins:
       authz-keycloak:
         token_endpoint: ${keycloak_token_endpoint}
