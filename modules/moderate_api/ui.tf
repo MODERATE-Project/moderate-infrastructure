@@ -1,6 +1,6 @@
 locals {
   ui_app_name     = "ui-app"
-  ui_port         = 3000
+  ui_port         = 80
   ui_service_name = "ui-service"
 }
 
@@ -36,6 +36,10 @@ resource "kubernetes_deployment" "moderate_ui" {
           }
           port {
             container_port = local.ui_port
+          }
+          env {
+            name  = "MODERATE_API_URL"
+            value = "http://${local.service_name}.${local.namespace}.svc.cluster.local:${local.api_port}"
           }
           resources {
             requests = {
@@ -99,8 +103,9 @@ resource "kubernetes_ingress_v1" "moderate_ui" {
     namespace = local.namespace
 
     annotations = {
-      "kubernetes.io/ingress.class"    = "nginx"
-      "cert-manager.io/cluster-issuer" = var.cert_manager_issuer
+      "kubernetes.io/ingress.class"                 = "nginx"
+      "cert-manager.io/cluster-issuer"              = var.cert_manager_issuer
+      "nginx.ingress.kubernetes.io/proxy-body-size" = var.ui_proxy_body_size
     }
   }
 

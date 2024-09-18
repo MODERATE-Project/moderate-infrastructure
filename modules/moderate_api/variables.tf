@@ -47,3 +47,9 @@ variable "open_metadata_bearer_token" {
   description = "Bearer token for the Open Metadata API"
   default     = null
 }
+
+variable "ui_proxy_body_size" {
+  type        = string
+  default     = "256m"
+  description = "Maximum body size for the UI proxy"
+}

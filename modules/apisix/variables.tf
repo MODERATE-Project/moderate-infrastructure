@@ -82,7 +82,7 @@ variable "keycloak_permissions_moderate_api" {
 
 variable "proxy_body_size" {
   type        = string
-  default     = "1024m"
+  default     = "256m"
   description = "Maximum allowed size of the client request body. This is an explicit limit on the size of the uploaded files."
 }
 
