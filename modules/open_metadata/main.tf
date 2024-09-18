@@ -112,8 +112,7 @@ locals {
       config = {
         logLevel = var.open_metadata_log_level
         openmetadata = {
-          host      = local.open_metadata_full_name
-          uri       = "https://${local.open_metadata_full_name}:${local.open_metadata_port}"
+          host      = "0.0.0.0"
           port      = local.open_metadata_port
           adminPort = local.open_metadata_admin_port
         }

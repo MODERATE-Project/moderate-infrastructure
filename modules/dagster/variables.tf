@@ -6,7 +6,7 @@ variable "namespace" {
 
 variable "dagster_chart_version" {
   type        = string
-  default     = "1.6.0"
+  default     = "1.8.7"
   description = "Dagster Helm chart version"
 }
 
