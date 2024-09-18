@@ -65,3 +65,10 @@ Then, add the new tokens to the `open_metadata_token` and `open_metadata_api_tok
 #### Edit authentication flows in Keycloak
 
 Some of the applications depend on Keycloak to restrict access to users with a specific role. This is not done automatically, due to this particular interaction not being supported in the utility package that is used to manage Keycloak. Therefore, it is necessary to edit the authentication flows in Keycloak to include a condition that checks for the appropriate role.
+
+#### Assigning roles
+
+Note that some services in MODERATE may require specific roles. It's not enough for a user to exist in the Keycloak realm; they must also have the appropriate roles.
+
+> [!IMPORTANT]
+> Users without the *API access* or *API admin* roles will be able to log into the Web UI, but they won't be able to use it, as all requests will fail.
