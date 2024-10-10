@@ -2,12 +2,11 @@ import enum
 import os
 
 import coloredlogs
-import typer
-from typing_extensions import Annotated
-
 import moderatecli.kc
 import moderatecli.kc.flows
-import moderatecli.postgis
+import moderatecli.postgres
+import typer
+from typing_extensions import Annotated
 
 
 class Variables(str, enum.Enum):
@@ -116,7 +115,14 @@ class Args:
 def enable_postgis(postgres_url: Args.postgres_url):
     """Enable PostGIS extensions on the database."""
 
-    moderatecli.postgis.enable_postgis(postgres_url=postgres_url)
+    moderatecli.postgres.enable_postgis(postgres_url=postgres_url)
+
+
+@app.command()
+def enable_extensions(postgres_url: Args.postgres_url):
+    """Enable all required extensions on the database."""
+
+    moderatecli.postgres.enable_extensions(postgres_url=postgres_url)
 
 
 @app.command()
