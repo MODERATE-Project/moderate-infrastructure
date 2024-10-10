@@ -31,7 +31,14 @@ resource "google_sql_user" "sql_user" {
 
 resource "google_sql_database" "sql_database" {
   instance = var.cloud_sql_instance_name
-  name     = "moderateapi"
+  name     = var.database
+}
+
+module "postgres_cloud_sql_extensions_api" {
+  source                            = "../postgres_cloud_sql_extensions"
+  google_sql_database_instance_name = var.cloud_sql_instance_name
+  postgres_host                     = var.postgres_host
+  database                          = google_sql_database.sql_database.name
 }
 
 resource "kubernetes_secret" "moderate_api_secrets" {

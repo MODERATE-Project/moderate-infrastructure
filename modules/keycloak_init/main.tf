@@ -90,7 +90,7 @@ resource "kubernetes_job_v1" "keycloak_init" {
       spec {
         container {
           name              = "keycloak-init"
-          image             = "docker.io/agmangas/moderate-cli:0.5.2"
+          image             = "docker.io/agmangas/moderate-cli:0.6.0"
           image_pull_policy = "Always"
           command = [
             "/bin/bash",

@@ -124,12 +124,6 @@ module "postgres_cloud_sql_proxy" {
   cloud_sql_connection_name = module.postgres_cloud_sql.sql_instance_connection_name
 }
 
-module "postgres_cloud_sql_postgis" {
-  source                            = "../modules/postgres_cloud_sql_postgis"
-  google_sql_database_instance_name = module.postgres_cloud_sql.sql_instance_name
-  postgres_host                     = module.postgres_cloud_sql_proxy.cloud_sql_proxy_service
-}
-
 module "yatai" {
   depends_on                        = [module.cert_manager]
   source                            = "../modules/yatai"
@@ -211,6 +205,7 @@ module "api" {
   cert_manager_issuer                = module.cert_manager.cluster_issuer_prod_name
   open_metadata_endpoint_url         = "http://${module.open_metadata.open_metadata_service_host_port}"
   open_metadata_bearer_token         = var.open_metadata_api_token
+  postgres_host                      = module.postgres_cloud_sql_proxy.cloud_sql_proxy_service
 }
 
 module "apisix" {

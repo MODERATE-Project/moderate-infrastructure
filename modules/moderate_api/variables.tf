@@ -53,3 +53,14 @@ variable "ui_proxy_body_size" {
   default     = "256m"
   description = "Maximum body size for the UI proxy"
 }
+
+variable "database" {
+  type        = string
+  description = "The name of the database"
+  default     = "moderateapi"
+}
+
+variable "postgres_host" {
+  type        = string
+  description = "The host of the PostgreSQL service (only for the DB initilization job)"
+}

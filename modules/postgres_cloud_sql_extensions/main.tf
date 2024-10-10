@@ -1,8 +1,8 @@
-resource "kubernetes_namespace" "enable_postgis" {
+resource "kubernetes_namespace" "enable_extensions" {
   count = var.namespace == null ? 1 : 0
   metadata {
-    annotations = { name = "postgis-enable-job" }
-    name        = "postgis-enable-job"
+    annotations = { name = "enable-extensions-${var.database}" }
+    name        = "enable-extensions-${var.database}"
   }
 }
 
@@ -13,24 +13,23 @@ resource "random_password" "job_user_password" {
 
 resource "google_sql_user" "sql_user" {
   instance        = var.google_sql_database_instance_name
-  name            = "user-job-enable-postgis"
+  name            = "user-job-enable-extensions-${var.database}"
   password        = random_password.job_user_password.result
   deletion_policy = "ABANDON"
 }
 
 locals {
-  namespace = var.namespace == null ? one(kubernetes_namespace.enable_postgis[*].id) : var.namespace
+  namespace = var.namespace == null ? one(kubernetes_namespace.enable_extensions[*].id) : var.namespace
   pg_user   = google_sql_user.sql_user.name
   pg_pass   = random_password.job_user_password.result
   pg_host   = var.postgres_host
   pg_port   = var.postgres_port
-  # By creating the extension in template1, it will be available for all the other databases that are created afterwards.
-  pg_db = "template1"
+  pg_db     = var.database
 }
 
-resource "kubernetes_secret" "enable_postgis" {
+resource "kubernetes_secret" "enable_extensions" {
   metadata {
-    name      = "secrets-enable-postgis"
+    name      = "secrets-enable-extensions"
     namespace = local.namespace
   }
 
@@ -39,9 +38,9 @@ resource "kubernetes_secret" "enable_postgis" {
   }
 }
 
-resource "kubernetes_job_v1" "enable_postgis" {
+resource "kubernetes_job_v1" "enable_extensions" {
   metadata {
-    name      = "enable-postgis"
+    name      = "enable-extensions"
     namespace = local.namespace
   }
 
@@ -51,21 +50,21 @@ resource "kubernetes_job_v1" "enable_postgis" {
     template {
       metadata {
         labels = {
-          app = "enable-postgis"
+          app = "enable-extensions"
         }
       }
       spec {
         container {
-          name              = "enable-postgis"
-          image             = "docker.io/agmangas/moderate-cli:0.5.2"
+          name              = "enable-extensions"
+          image             = "docker.io/agmangas/moderate-cli:0.6.0"
           image_pull_policy = "Always"
           command = [
             "moderatecli",
-            "enable-postgis"
+            "enable-extensions"
           ]
           env_from {
             secret_ref {
-              name = kubernetes_secret.enable_postgis.metadata[0].name
+              name = kubernetes_secret.enable_extensions.metadata[0].name
             }
           }
         }

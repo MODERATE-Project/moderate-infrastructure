@@ -23,5 +23,10 @@ variable "google_sql_database_instance_name" {
 variable "backoff_limit" {
   type        = number
   description = "The number of retries before considering the job as failed."
-  default     = 12
+  default     = 64
+}
+
+variable "database" {
+  type        = string
+  description = "The name of the database where the extensions will be enabled."
 }
