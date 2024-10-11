@@ -4,7 +4,9 @@ resource "google_service_account" "api_bucket_admin_sa" {
 }
 
 locals {
-  api_bucket_name = "platformapi"
+  prefix              = "moderate"
+  api_bucket_name     = "platform-api"
+  outputs_bucket_name = "outputs"
 }
 
 module "bucket" {
@@ -13,9 +15,9 @@ module "bucket" {
   project_id               = var.project_id
   location                 = var.region
   public_access_prevention = "enforced"
-  prefix                   = "moderate"
-  names                    = [local.api_bucket_name]
-  force_destroy            = { (local.api_bucket_name) = true }
+  prefix                   = local.prefix
+  names                    = [local.api_bucket_name, local.outputs_bucket_name]
+  force_destroy            = { (local.api_bucket_name) = true, (local.outputs_bucket_name) = true }
   storage_admins           = ["serviceAccount:${google_service_account.api_bucket_admin_sa.email}"]
   set_storage_admin_roles  = true
 }

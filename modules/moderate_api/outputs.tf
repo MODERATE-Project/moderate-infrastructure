@@ -14,6 +14,10 @@ output "api_s3_bucket_name" {
   value = module.bucket.buckets_map[local.api_bucket_name].name
 }
 
+output "outputs_s3_bucket_name" {
+  value = module.bucket.buckets_map[local.outputs_bucket_name].name
+}
+
 output "api_s3_endpoint_url" {
   value = local.s3_endpoint_url
 }
