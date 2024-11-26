@@ -3,6 +3,7 @@ resource "google_gke_backup_backup_plan" "gke_backup_plan" {
   cluster     = module.gke.cluster_id
   location    = var.region
   deactivated = var.enable_backup ? false : true
+  project     = var.project_id
 
   backup_config {
     include_volume_data = true
