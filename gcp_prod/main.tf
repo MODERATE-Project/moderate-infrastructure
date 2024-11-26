@@ -184,6 +184,11 @@ module "mongo" {
   source     = "../modules/mongo"
 }
 
+module "rabbit" {
+  depends_on = [module.cert_manager]
+  source     = "../modules/rabbit"
+}
+
 module "trust" {
   depends_on     = [module.nginx_controller_gke]
   source         = "../modules/trust_services"
@@ -206,6 +211,7 @@ module "api" {
   open_metadata_endpoint_url         = "http://${module.open_metadata.open_metadata_service_host_port}"
   open_metadata_bearer_token         = var.open_metadata_api_token
   postgres_host                      = module.postgres_cloud_sql_proxy.cloud_sql_proxy_service
+  rabbit_router_url                  = module.rabbit.rabbit_private_url
 }
 
 module "apisix" {
@@ -245,6 +251,7 @@ module "dagster" {
   s3_bucket_name          = module.api.api_s3_bucket_name
   s3_endpoint_url         = module.api.api_s3_endpoint_url
   s3_region               = module.api.api_s3_region
+  rabbit_router_url       = module.rabbit.rabbit_private_url
 }
 
 module "tool_lec" {

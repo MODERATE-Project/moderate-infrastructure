@@ -64,3 +64,9 @@ variable "postgres_host" {
   type        = string
   description = "The host of the PostgreSQL service (only for the DB initilization job)"
 }
+
+variable "rabbit_router_url" {
+  type        = string
+  description = "The URL of the RabbitMQ message broker"
+  default     = null
+}

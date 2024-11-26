@@ -38,26 +38,33 @@ resource "kubernetes_secret" "dagster_secrets" {
     namespace = local.namespace
   }
 
-  data = {
-    KEYCLOAK_SERVER_URL     = var.keycloak_url
-    KEYCLOAK_ADMIN_USERNAME = var.keycloak_admin_user
-    KEYCLOAK_ADMIN_PASSWORD = var.keycloak_admin_pass
-    POSTGRES_HOST           = var.postgres_host
-    POSTGRES_PORT           = var.postgres_port
-    POSTGRES_USERNAME       = google_sql_user.dagster_sql_user.name
-    POSTGRES_PASSWORD       = google_sql_user.dagster_sql_user.password
-    OPEN_METADATA_HOST      = var.open_metadata_host
-    OPEN_METADATA_PORT      = var.open_metadata_port
-    OPEN_METADATA_TOKEN     = var.open_metadata_token
-    API_BASE_URL            = var.platform_api_url
-    API_USERNAME            = var.platform_api_username
-    API_PASSWORD            = var.platform_api_password
-    S3_ACCESS_KEY_ID        = var.s3_access_key
-    S3_SECRET_ACCESS_KEY    = var.s3_secret_key
-    S3_REGION               = "auto"
-    S3_BUCKET_NAME          = var.s3_bucket_name
-    S3_ENDPOINT_URL         = "https://storage.googleapis.com"
-  }
+  data = merge(
+    {
+      KEYCLOAK_SERVER_URL      = var.keycloak_url
+      KEYCLOAK_ADMIN_USERNAME  = var.keycloak_admin_user
+      KEYCLOAK_ADMIN_PASSWORD  = var.keycloak_admin_pass
+      POSTGRES_HOST            = var.postgres_host
+      POSTGRES_PORT            = var.postgres_port
+      POSTGRES_USERNAME        = google_sql_user.dagster_sql_user.name
+      POSTGRES_PASSWORD        = google_sql_user.dagster_sql_user.password
+      OPEN_METADATA_HOST       = var.open_metadata_host
+      OPEN_METADATA_PORT       = var.open_metadata_port
+      OPEN_METADATA_TOKEN      = var.open_metadata_token
+      API_BASE_URL             = var.platform_api_url
+      API_USERNAME             = var.platform_api_username
+      API_PASSWORD             = var.platform_api_password
+      S3_ACCESS_KEY_ID         = var.s3_access_key
+      S3_SECRET_ACCESS_KEY     = var.s3_secret_key
+      S3_REGION                = "auto"
+      S3_BUCKET_NAME           = var.s3_bucket_name
+      S3_ENDPOINT_URL          = "https://storage.googleapis.com"
+      MATRIX_PROFILE_JOB_IMAGE = "europe-west1-docker.pkg.dev/moderate-common/moderate-images/moderate-matrix-profile-workflow"
+      MATRIX_PROFILE_JOB_TAG   = "main"
+    },
+    var.rabbit_router_url == null || var.rabbit_router_url == "" ? {} : {
+      RABBIT_URL = var.rabbit_router_url
+    }
+  )
 }
 
 locals {

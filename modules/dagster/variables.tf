@@ -118,3 +118,9 @@ variable "s3_region" {
   description = "Region of the S3 service"
   default     = "auto"
 }
+
+variable "rabbit_router_url" {
+  type        = string
+  description = "The URL of the RabbitMQ message broker"
+  default     = null
+}

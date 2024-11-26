@@ -62,6 +62,9 @@ resource "kubernetes_secret" "moderate_api_secrets" {
     var.open_metadata_bearer_token == null || var.open_metadata_bearer_token == "" ? {} : {
       MODERATE_API_OPEN_METADATA_SERVICE__ENDPOINT_URL = var.open_metadata_endpoint_url
       MODERATE_API_OPEN_METADATA_SERVICE__BEARER_TOKEN = var.open_metadata_bearer_token
+    },
+    var.rabbit_router_url == null || var.rabbit_router_url == "" ? {} : {
+      MODERATE_API_RABBIT_ROUTER_URL = var.rabbit_router_url
     }
   )
 }
