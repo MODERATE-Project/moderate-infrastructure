@@ -63,6 +63,9 @@ resource "kubernetes_secret" "dagster_secrets" {
     },
     var.rabbit_router_url == null || var.rabbit_router_url == "" ? {} : {
       RABBIT_URL = var.rabbit_router_url
+    },
+    var.s3_job_outputs_bucket_name == null || var.s3_job_outputs_bucket_name == "" ? {} : {
+      S3_JOB_OUTPUTS_BUCKET_NAME = var.s3_job_outputs_bucket_name
     }
   )
 }

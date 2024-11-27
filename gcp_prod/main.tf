@@ -230,28 +230,29 @@ module "apisix" {
 }
 
 module "dagster" {
-  depends_on              = [module.cert_manager]
-  source                  = "../modules/dagster"
-  ingress_enabled         = false
-  domain                  = var.domain_dagster
-  cloud_sql_instance_name = module.postgres_cloud_sql.sql_instance_name
-  postgres_host           = module.postgres_cloud_sql_proxy.cloud_sql_proxy_service
-  keycloak_admin_user     = module.keycloak.keycloak_admin_user
-  keycloak_admin_pass     = module.keycloak.keycloak_admin_pass
-  keycloak_url            = "http://${module.keycloak.keycloak_service_host_port}"
-  cert_manager_issuer     = module.cert_manager.cluster_issuer_prod_name
-  open_metadata_host      = "http://${module.open_metadata.open_metadata_service_host}"
-  open_metadata_port      = module.open_metadata.open_metadata_service_port
-  open_metadata_token     = var.open_metadata_token
-  platform_api_username   = module.keycloak_init.platform_api_username
-  platform_api_password   = module.keycloak_init.platform_api_password
-  platform_api_url        = module.apisix.public_moderate_api_url
-  s3_access_key           = module.api.api_s3_access_key
-  s3_secret_key           = module.api.api_s3_secret_key
-  s3_bucket_name          = module.api.api_s3_bucket_name
-  s3_endpoint_url         = module.api.api_s3_endpoint_url
-  s3_region               = module.api.api_s3_region
-  rabbit_router_url       = module.rabbit.rabbit_private_url
+  depends_on                 = [module.cert_manager]
+  source                     = "../modules/dagster"
+  ingress_enabled            = false
+  domain                     = var.domain_dagster
+  cloud_sql_instance_name    = module.postgres_cloud_sql.sql_instance_name
+  postgres_host              = module.postgres_cloud_sql_proxy.cloud_sql_proxy_service
+  keycloak_admin_user        = module.keycloak.keycloak_admin_user
+  keycloak_admin_pass        = module.keycloak.keycloak_admin_pass
+  keycloak_url               = "http://${module.keycloak.keycloak_service_host_port}"
+  cert_manager_issuer        = module.cert_manager.cluster_issuer_prod_name
+  open_metadata_host         = "http://${module.open_metadata.open_metadata_service_host}"
+  open_metadata_port         = module.open_metadata.open_metadata_service_port
+  open_metadata_token        = var.open_metadata_token
+  platform_api_username      = module.keycloak_init.platform_api_username
+  platform_api_password      = module.keycloak_init.platform_api_password
+  platform_api_url           = module.apisix.public_moderate_api_url
+  s3_access_key              = module.api.api_s3_access_key
+  s3_secret_key              = module.api.api_s3_secret_key
+  s3_bucket_name             = module.api.api_s3_bucket_name
+  s3_endpoint_url            = module.api.api_s3_endpoint_url
+  s3_region                  = module.api.api_s3_region
+  s3_job_outputs_bucket_name = module.api.outputs_s3_bucket_name
+  rabbit_router_url          = module.rabbit.rabbit_private_url
 }
 
 module "tool_lec" {

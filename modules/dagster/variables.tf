@@ -119,6 +119,12 @@ variable "s3_region" {
   default     = "auto"
 }
 
+variable "s3_job_outputs_bucket_name" {
+  type        = string
+  description = "Name of the S3 bucket to store job outputs"
+  default     = null
+}
+
 variable "rabbit_router_url" {
   type        = string
   description = "The URL of the RabbitMQ message broker"
