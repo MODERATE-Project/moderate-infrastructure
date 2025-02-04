@@ -135,3 +135,23 @@ resource "kubernetes_service" "mongo" {
     type = "NodePort"
   }
 }
+
+resource "kubernetes_service" "mongo_internal_service" {
+  metadata {
+    name      = "mongo-internal-service"
+    namespace = local.namespace
+    annotations = {
+      "cloud.google.com/load-balancer-type" = "Internal"
+    }
+  }
+  spec {
+    selector = {
+      app = kubernetes_deployment.mongo.spec[0].template[0].metadata[0].labels.app
+    }
+    port {
+      port        = local.mongo_port
+      target_port = local.mongo_port
+    }
+    type = "LoadBalancer"
+  }
+}
