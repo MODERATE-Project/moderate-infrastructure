@@ -137,3 +137,13 @@ variable "trust_l2_private_key" {
   description = "Private key of the wallet that will act as the proxy for the IOTA network"
   sensitive   = true
 }
+
+variable "devuser_username" {
+  type        = string
+  description = "Username for the development instance user account"
+}
+
+variable "devuser_ssh_public_key" {
+  type        = string
+  description = "SSH public key for authenticating to the development instance (e.g., 'ssh-rsa AAAAB3NzaC1...')"
+}

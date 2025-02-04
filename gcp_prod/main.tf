@@ -262,3 +262,16 @@ module "tool_lec" {
   cert_manager_issuer = module.cert_manager.cluster_issuer_prod_name
   geoserver_url       = "http://${module.geoserver.geoserver_service_host_port}"
 }
+
+// This module creates a compute instance to deploy MODERATE services that are in
+// development and benefit from having an easier and quicker deployment process,
+// rather than constantly updating Terraform resources.
+module "dev_compute_instance" {
+  source                 = "../modules/dev_compute_instance"
+  zone                   = var.zone_default
+  region                 = var.region
+  network                = module.gke_cluster.cluster_network_name
+  subnetwork             = module.gke_cluster.cluster_subnetwork_name
+  devuser                = var.devuser_username
+  devuser_ssh_public_key = var.devuser_ssh_public_key
+}
