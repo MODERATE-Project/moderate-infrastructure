@@ -16,6 +16,10 @@ output "cluster_network_name" {
   value = module.gcp_network.network_name
 }
 
+output "cluster_subnetwork_name" {
+  value = module.gcp_network.subnets_names[0]
+}
+
 output "cluster_network_id" {
   value = module.gcp_network.network_id
 }
