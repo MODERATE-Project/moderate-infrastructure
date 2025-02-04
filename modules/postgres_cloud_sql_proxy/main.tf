@@ -95,3 +95,23 @@ resource "kubernetes_service" "cloud_sql" {
     type = "ClusterIP"
   }
 }
+
+resource "kubernetes_service" "cloud_sql_internal_service" {
+  metadata {
+    name      = "cloud-sql-internal-service"
+    namespace = local.namespace
+    annotations = {
+      "cloud.google.com/load-balancer-type" = "Internal"
+    }
+  }
+  spec {
+    selector = {
+      app = local.proxy_app
+    }
+    port {
+      port        = local.postgres_port
+      target_port = local.postgres_port
+    }
+    type = "LoadBalancer"
+  }
+}
