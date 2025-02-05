@@ -4,7 +4,7 @@ resource "google_compute_address" "static_ip" {
 }
 
 resource "google_compute_firewall" "dev_instance_ssh_ingress" {
-  name          = "${var.instance_name}-allow-ssh"
+  name          = "${var.instance_name}-allow-ssh-http"
   network       = var.network
   direction     = "INGRESS"
   priority      = 1000
@@ -13,7 +13,7 @@ resource "google_compute_firewall" "dev_instance_ssh_ingress" {
 
   allow {
     protocol = "tcp"
-    ports    = ["22"]
+    ports    = ["22", "80", "443"]
   }
 }
 
