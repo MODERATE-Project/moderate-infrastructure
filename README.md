@@ -53,6 +53,9 @@ The DNS records for the `moderate.cloud` domain are managed by Google's Cloud DN
 
 #### Configuring the OpenMetadata JWT tokens
 
+> [!IMPORTANT]
+> To enable first-time login to OpenMetadata, you must first create a user in Keycloak whose email matches the `initialAdmins@principalDomain` configuration in OpenMetadata.
+
 There are two OpenMetadata tokens that need to be configured:
 
 * One for the Dagster assets that run the metadata workflows.
