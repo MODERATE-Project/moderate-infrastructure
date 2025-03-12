@@ -71,7 +71,7 @@ resource "kubernetes_secret" "moderate_api_secrets" {
 
 module "cloud_sql_proxy_wi" {
   source     = "terraform-google-modules/kubernetes-engine/google//modules/workload-identity"
-  version    = "~> 29.0.0"
+  version    = "~> 36.1.0"
   name       = "cloud-sql-proxy-moderateapi"
   namespace  = local.namespace
   project_id = var.project_id

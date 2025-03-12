@@ -11,7 +11,7 @@ locals {
 
 module "bucket" {
   source                   = "terraform-google-modules/cloud-storage/google"
-  version                  = "~> 5.0"
+  version                  = "~> 9.1.0"
   project_id               = var.project_id
   location                 = var.region
   public_access_prevention = "enforced"

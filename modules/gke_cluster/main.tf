@@ -4,7 +4,7 @@ locals {
 
 module "gke" {
   source                     = "terraform-google-modules/kubernetes-engine/google//modules/private-cluster"
-  version                    = "~> 32.0.4"
+  version                    = "~> 36.1.0"
   kubernetes_version         = var.kubernetes_version == null ? "latest" : var.kubernetes_version
   release_channel            = var.kubernetes_version == null ? "STABLE" : "UNSPECIFIED"
   project_id                 = var.project_id
@@ -88,5 +88,13 @@ module "gke" {
     "${local.main_node_pool_name}" = [
       "default-node-pool",
     ]
+  }
+
+  node_pools_resource_labels = {
+    all = {}
+
+    "${local.main_node_pool_name}" = {
+      "goog-gke-node-pool-provisioning-model" = "on-demand"
+    }
   }
 }

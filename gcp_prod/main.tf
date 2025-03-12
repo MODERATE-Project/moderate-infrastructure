@@ -2,12 +2,12 @@ terraform {
   required_providers {
     google = {
       source  = "hashicorp/google"
-      version = "~> 5.44.0"
+      version = "~> 6.25.0"
     }
 
     kubectl = {
       source  = "alekc/kubectl"
-      version = "~> 2.0.4"
+      version = "~> 2.1.3"
     }
   }
 }
