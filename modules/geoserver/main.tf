@@ -220,3 +220,56 @@ resource "kubernetes_ingress_v1" "geoserver" {
     }
   }
 }
+
+# Network policy to control egress traffic from GeoServer pods
+resource "kubernetes_network_policy" "geoserver_egress_policy" {
+  metadata {
+    name      = "geoserver-egress-policy"
+    namespace = local.namespace
+  }
+
+  spec {
+    pod_selector {
+      match_labels = {
+        app = local.app_name
+      }
+    }
+
+    policy_types = ["Egress"]
+
+    # Allow DNS resolution
+    egress {
+      ports {
+        port     = 53
+        protocol = "UDP"
+      }
+      to {
+        ip_block {
+          cidr = "0.0.0.0/0" # Allow DNS queries to any destination
+        }
+      }
+    }
+
+    # Allow all egress to all namespaces within the cluster
+    egress {
+      to {
+        namespace_selector {}
+      }
+    }
+
+    # Allow access to Google Artifact Registry and Cloud Storage via HTTPS
+    egress {
+      ports {
+        port     = 443
+        protocol = "TCP"
+      }
+      to {
+        ip_block {
+          # Google APIs and services CIDR block
+          # Reference: https://cloud.google.com/artifact-registry/docs/securing-with-vpc-sc#ar-vpc
+          cidr = "199.36.153.8/30"
+        }
+      }
+    }
+  }
+}
