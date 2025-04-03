@@ -79,3 +79,16 @@ tasks:
         {{.DAGSTER_WEBSERVER_POD_NAME}}
         {{.DAGSTER_WEBSERVER_PORT}}:80) || true;
         done
+
+  load-cloud-sql-dump:
+    desc: Load a SQL dump into a Cloud SQL instance
+    requires:
+      vars:
+        - GCP_PROJECT_ID
+        - CLOUD_SQL_INSTANCE
+        - DB_NAME
+        - DB_USER
+        - DB_PASSWORD
+        - SQL_DUMP_FILE
+    cmds:
+      - ./scripts/load-cloud-sql-dump.sh
