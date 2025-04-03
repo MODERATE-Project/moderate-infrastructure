@@ -255,14 +255,6 @@ module "dagster" {
   rabbit_router_url          = module.rabbit.rabbit_private_url
 }
 
-module "tool_lec" {
-  depends_on          = [module.cert_manager]
-  source              = "../modules/tool_lec"
-  domain              = var.domain_tool_lec
-  cert_manager_issuer = module.cert_manager.cluster_issuer_prod_name
-  geoserver_url       = "http://${module.geoserver.geoserver_service_host_port}"
-}
-
 // This module creates a compute instance to deploy MODERATE services that are in
 // development and benefit from having an easier and quicker deployment process,
 // rather than constantly updating Terraform resources.
