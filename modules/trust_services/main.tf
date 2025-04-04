@@ -32,7 +32,8 @@ locals {
   secrets_data = {
     MONGO_INITDB_ROOT_USERNAME      = var.mongo_username
     MONGO_INITDB_ROOT_PASSWORD      = var.mongo_password
-    MONGO_ENDPOINT                  = var.mongo_endpoint
+    MONGO_ENDPOINT_L                = var.mongo_endpoint
+    MONGO_ENDPOINT_D                = var.mongo_endpoint
     MONGO_DATABASE                  = var.mongo_database
     STRONGHOLD_PASSWORD             = random_password.iota_wallet_stronghold_password.result
     KEY_STORAGE_STRONGHOLD_PASSWORD = random_password.iota_identity_key_storage_stronghold_password.result
