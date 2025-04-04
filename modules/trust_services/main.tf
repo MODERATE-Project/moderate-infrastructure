@@ -38,6 +38,7 @@ locals {
     STRONGHOLD_PASSWORD             = random_password.iota_wallet_stronghold_password.result
     KEY_STORAGE_STRONGHOLD_PASSWORD = random_password.iota_identity_key_storage_stronghold_password.result
     L2_PRIVATE_KEY                  = var.l2_private_key
+    LOG_FILE_NAME                   = "dlog.log"
   }
 
   merged_secrets_data = merge(local.dot_env_data, local.secrets_data)
@@ -100,6 +101,10 @@ resource "kubernetes_deployment" "moderate_trust" {
               memory = "4Gi"
             }
           }
+          env {
+            name  = "RUNNING_IN_DOCKER"
+            value = "true"
+          }
           env_from {
             secret_ref {
               name = kubernetes_secret.moderate_trust_secrets.metadata[0].name
@@ -124,6 +129,86 @@ resource "kubernetes_service" "moderate_trust" {
     port {
       port        = local.trust_port
       target_port = local.trust_port
+    }
+    type = "ClusterIP"
+  }
+}
+
+locals {
+  ipfs_app_name = "ipfs"
+  ipfs_api_port = 5001
+}
+
+resource "kubernetes_deployment" "ipfs" {
+  metadata {
+    name      = "ipfs-deployment"
+    namespace = local.namespace
+    labels = {
+      app = local.ipfs_app_name
+    }
+  }
+
+  spec {
+    replicas = 1
+    selector {
+      match_labels = {
+        app = local.ipfs_app_name
+      }
+    }
+    template {
+      metadata {
+        labels = {
+          app = local.ipfs_app_name
+        }
+      }
+      spec {
+        container {
+          image             = "ipfs/kubo:v0.34.1"
+          name              = "ipfs"
+          image_pull_policy = "Always"
+          security_context {
+            allow_privilege_escalation = false
+          }
+          port {
+            container_port = local.ipfs_api_port
+          }
+          resources {
+            requests = {
+              cpu    = "100m"
+              memory = "256Mi"
+            }
+            limits = {
+              cpu    = "1000m"
+              memory = "1Gi"
+            }
+          }
+          volume_mount {
+            name       = "ipfs-data"
+            mount_path = "/data/ipfs"
+          }
+        }
+        volume {
+          name = "ipfs-data"
+          empty_dir {}
+        }
+      }
+    }
+  }
+}
+
+resource "kubernetes_service" "ipfs" {
+  metadata {
+    name      = "ipfs"
+    namespace = local.namespace
+  }
+
+  spec {
+    selector = {
+      app = kubernetes_deployment.ipfs.spec[0].template[0].metadata[0].labels.app
+    }
+    port {
+      port        = local.ipfs_api_port
+      target_port = local.ipfs_api_port
     }
     type = "ClusterIP"
   }
