@@ -189,6 +189,11 @@ DB_EXISTS=$(psql -h localhost -p ${PROXY_PORT} -U ${DB_USER} -d postgres -t -c "
 # Function to recreate database
 function recreate_database() {
     log_step "Dropping database ${DB_NAME}..."
+
+    # First terminate existing connections to the database
+    log_info "Terminating any existing connections to ${DB_NAME}..."
+    psql -h localhost -p ${PROXY_PORT} -U ${DB_USER} -d postgres -c "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='${DB_NAME}' AND pid <> pg_backend_pid();"
+
     if ! psql -h localhost -p ${PROXY_PORT} -U ${DB_USER} -d postgres -c "DROP DATABASE IF EXISTS ${DB_NAME};"; then
         log_error "Failed to drop database ${DB_NAME}"
         exit 1
