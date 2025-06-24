@@ -54,7 +54,7 @@ resource "kubernetes_secret" "moderate_trust_secrets" {
 }
 
 locals {
-  image_tag = "161e7c7a1101423476dad79ed09277091873b3a6"
+  image_tag = "cde5ce9e626e26ce1ff7d4f99cd96833e80cef44"
 }
 
 # trunk-ignore(checkov/CKV_K8S_35,checkov/CKV_K8S_8,checkov/CKV_K8S_9)
