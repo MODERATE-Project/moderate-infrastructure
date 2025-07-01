@@ -93,7 +93,7 @@ resource "kubernetes_deployment" "moderate_api" {
   }
 
   spec {
-    replicas = 1
+    replicas = 3
     selector {
       match_labels = {
         app = local.app_name
@@ -197,6 +197,15 @@ resource "kubernetes_service" "moderate_api" {
     selector = {
       app = kubernetes_deployment.moderate_api.spec[0].template[0].metadata[0].labels.app
     }
+
+    # Enable session affinity based on client IP
+    session_affinity = "ClientIP"
+    session_affinity_config {
+      client_ip {
+        timeout_seconds = 10800 # 3 hours
+      }
+    }
+
     port {
       port        = local.api_port
       target_port = local.api_port
