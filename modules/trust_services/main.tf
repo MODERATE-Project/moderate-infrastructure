@@ -57,7 +57,27 @@ locals {
   image_tag = "cde5ce9e626e26ce1ff7d4f99cd96833e80cef44"
 }
 
-# trunk-ignore(checkov/CKV_K8S_35,checkov/CKV_K8S_8,checkov/CKV_K8S_9)
+resource "kubernetes_persistent_volume_claim" "trust_pvc" {
+  metadata {
+    name      = "trust-pvc"
+    namespace = local.namespace
+  }
+  spec {
+    access_modes = ["ReadWriteOnce"]
+    resources {
+      requests = {
+        storage = "${var.volume_size_gi}Gi"
+      }
+    }
+  }
+  wait_until_bound = false
+}
+
+locals {
+  # This should match the corresponding configuration in the .env.trust file
+  trust_volume_mount_path = "/var/lib/trust"
+}
+
 resource "kubernetes_deployment" "moderate_trust" {
   metadata {
     name      = "trust-deployment"
@@ -91,6 +111,10 @@ resource "kubernetes_deployment" "moderate_trust" {
           port {
             container_port = local.trust_port
           }
+          volume_mount {
+            name       = "trust-data-volume"
+            mount_path = local.trust_volume_mount_path
+          }
           resources {
             requests = {
               cpu    = "100m"
@@ -109,6 +133,12 @@ resource "kubernetes_deployment" "moderate_trust" {
             secret_ref {
               name = kubernetes_secret.moderate_trust_secrets.metadata[0].name
             }
+          }
+        }
+        volume {
+          name = "trust-data-volume"
+          persistent_volume_claim {
+            claim_name = kubernetes_persistent_volume_claim.trust_pvc.metadata[0].name
           }
         }
       }

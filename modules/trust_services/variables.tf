@@ -31,3 +31,9 @@ variable "l2_private_key" {
   description = "Private key of the wallet that will act as the proxy for the IOTA network"
   sensitive   = true
 }
+
+variable "volume_size_gi" {
+  type        = number
+  description = "Size of the persistent volume for trust data in GiB"
+  default     = 20
+}
