@@ -45,11 +45,10 @@ resource "helm_release" "ingress_nginx" {
     EOF
   ] : null
 
-  dynamic "set" {
-    for_each = var.tcp_services == null ? [] : var.tcp_services
-    content {
-      name  = "tcp.${set.value["public_port"]}"
-      value = set.value["kube_service"]
+  set = var.tcp_services == null ? [] : [
+    for svc in var.tcp_services : {
+      name  = "tcp.${svc["public_port"]}"
+      value = svc["kube_service"]
     }
-  }
+  ]
 }

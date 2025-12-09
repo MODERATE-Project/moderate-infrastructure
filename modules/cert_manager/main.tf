@@ -14,10 +14,12 @@ resource "helm_release" "cert_manager" {
   version    = var.cert_manager_chart_version
   namespace  = kubernetes_namespace.cert_manager.id
 
-  set {
-    name  = "installCRDs"
-    value = true
-  }
+  set = [
+    {
+      name  = "installCRDs"
+      value = true
+    }
+  ]
 }
 
 # Give a few seconds for the cert-manager CRDs to be created

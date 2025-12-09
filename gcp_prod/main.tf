@@ -77,7 +77,7 @@ provider "kubectl" {
 }
 
 provider "helm" {
-  kubernetes {
+  kubernetes = {
     host                   = module.gke_cluster.kubernetes_host
     token                  = data.google_client_config.default.access_token
     cluster_ca_certificate = module.gke_cluster.kubernetes_cluster_ca_cert
