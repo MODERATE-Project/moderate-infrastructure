@@ -40,3 +40,4 @@ terraform.rc
 #######
 
 .env.local
+.claude
