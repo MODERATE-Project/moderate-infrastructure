@@ -54,7 +54,7 @@ resource "kubernetes_secret" "moderate_trust_secrets" {
 }
 
 locals {
-  image_tag = "09de161d5c0bc2784c149f437ac504bae6cd75f4"
+  image_tag = "8cc07a54be0434d7a7dfbd2a3dbac66c9d6014c1"
 }
 
 resource "kubernetes_persistent_volume_claim" "trust_pvc" {
