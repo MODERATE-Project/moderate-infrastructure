@@ -58,6 +58,7 @@ resource "kubernetes_secret" "moderate_api_secrets" {
       MODERATE_API_S3__BUCKET                  = module.bucket.buckets_map[local.api_bucket_name].name
       MODERATE_API_POSTGRES_URL                = "postgresql+asyncpg://${google_sql_user.sql_user.name}:${google_sql_user.sql_user.password}@localhost:${local.postgres_port}/${google_sql_database.sql_database.name}"
       MODERATE_API_TRUST_SERVICE__ENDPOINT_URL = var.trust_service_endpoint_url
+      MODERATE_API_DIVA__ENABLED               = tostring(var.diva_enabled)
     },
     var.open_metadata_bearer_token == null || var.open_metadata_bearer_token == "" ? {} : {
       MODERATE_API_OPEN_METADATA_SERVICE__ENDPOINT_URL = var.open_metadata_endpoint_url
@@ -65,6 +66,18 @@ resource "kubernetes_secret" "moderate_api_secrets" {
     },
     var.rabbit_router_url == null || var.rabbit_router_url == "" ? {} : {
       MODERATE_API_RABBIT_ROUTER_URL = var.rabbit_router_url
+    },
+    var.diva_kafka_rest_url == null || var.diva_kafka_rest_url == "" ? {} : {
+      MODERATE_API_DIVA__KAFKA_REST_URL = var.diva_kafka_rest_url
+    },
+    var.diva_quality_reporter_url == null || var.diva_quality_reporter_url == "" ? {} : {
+      MODERATE_API_DIVA__QUALITY_REPORTER_URL = var.diva_quality_reporter_url
+    },
+    var.diva_basic_auth_user == null || var.diva_basic_auth_user == "" ? {} : {
+      MODERATE_API_DIVA__BASIC_AUTH_USER = var.diva_basic_auth_user
+    },
+    var.diva_basic_auth_password == null || var.diva_basic_auth_password == "" ? {} : {
+      MODERATE_API_DIVA__BASIC_AUTH_PASSWORD = var.diva_basic_auth_password
     }
   )
 }

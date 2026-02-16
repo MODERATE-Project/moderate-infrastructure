@@ -70,3 +70,34 @@ variable "rabbit_router_url" {
   description = "The URL of the RabbitMQ message broker"
   default     = null
 }
+
+variable "diva_enabled" {
+  type        = bool
+  description = "Whether DIVA integration is enabled"
+  default     = false
+}
+
+variable "diva_kafka_rest_url" {
+  type        = string
+  description = "Base URL of the DIVA Kafka REST API"
+  default     = null
+}
+
+variable "diva_quality_reporter_url" {
+  type        = string
+  description = "Base URL of the DIVA Quality Reporter API"
+  default     = null
+}
+
+variable "diva_basic_auth_user" {
+  type        = string
+  description = "Basic authentication username for DIVA endpoints"
+  default     = null
+}
+
+variable "diva_basic_auth_password" {
+  type        = string
+  description = "Basic authentication password for DIVA endpoints"
+  default     = null
+  sensitive   = true
+}

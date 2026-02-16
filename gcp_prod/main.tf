@@ -213,6 +213,11 @@ module "api" {
   open_metadata_bearer_token         = var.open_metadata_api_token
   postgres_host                      = module.postgres_cloud_sql_proxy.cloud_sql_proxy_service
   rabbit_router_url                  = module.rabbit.rabbit_private_url
+  diva_enabled                       = var.diva_enabled
+  diva_kafka_rest_url                = var.diva_kafka_rest_url
+  diva_quality_reporter_url          = var.diva_quality_reporter_url
+  diva_basic_auth_user               = var.diva_basic_auth_user
+  diva_basic_auth_password           = var.diva_basic_auth_password
 }
 
 module "apisix" {

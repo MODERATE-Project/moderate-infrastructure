@@ -115,6 +115,37 @@ variable "open_metadata_api_token" {
   description = "Token used by the Platform API to interact with the internal Open Metadata service. This should be defined after the deployment as the token has to be retrieved manually from the Open Metadata web UI."
 }
 
+variable "diva_enabled" {
+  type        = bool
+  default     = false
+  description = "Whether DIVA integration is enabled in the Platform API"
+}
+
+variable "diva_kafka_rest_url" {
+  type        = string
+  default     = null
+  description = "Base URL of the DIVA Kafka REST API"
+}
+
+variable "diva_quality_reporter_url" {
+  type        = string
+  default     = null
+  description = "Base URL of the DIVA Quality Reporter API"
+}
+
+variable "diva_basic_auth_user" {
+  type        = string
+  default     = null
+  description = "Basic authentication username for DIVA APIs"
+}
+
+variable "diva_basic_auth_password" {
+  type        = string
+  default     = null
+  sensitive   = true
+  description = "Basic authentication password for DIVA APIs"
+}
+
 variable "nodes_min_count" {
   type        = number
   description = "Minimum number of nodes per zone in the Kubernetes cluster"
