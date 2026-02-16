@@ -93,7 +93,7 @@ resource "kubernetes_deployment" "moderate_api" {
   }
 
   spec {
-    replicas = 3
+    replicas = 4
     selector {
       match_labels = {
         app = local.app_name

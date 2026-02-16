@@ -115,6 +115,7 @@ module "postgres_cloud_sql" {
   project_id         = var.project_id
   region             = var.region
   cluster_network_id = module.gke_cluster.cluster_network_id
+  disk_size_gb       = 15
 }
 
 module "postgres_cloud_sql_proxy" {

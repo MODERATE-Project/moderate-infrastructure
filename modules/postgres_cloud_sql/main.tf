@@ -26,6 +26,11 @@ resource "google_sql_database_instance" "postgres_sql_instance" {
   database_version    = var.database_version
   deletion_protection = false
 
+  lifecycle {
+    prevent_destroy = true
+    ignore_changes  = [settings[0].disk_size]
+  }
+
   settings {
     tier                  = "db-g1-small"
     availability_type     = "ZONAL"
