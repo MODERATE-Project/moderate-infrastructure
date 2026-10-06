@@ -22,7 +22,6 @@ Point these DNS names at the host, replacing `<domain>` with your domain:
 - `s3.<domain>`
 - `openmetadata.<domain>`
 - `geoserver.<domain>`
-- `docs.<domain>`
 
 Open TCP ports 80 and 443 for HTTP redirects and HTTPS certificate issuance.
 

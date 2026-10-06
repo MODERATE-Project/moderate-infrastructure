@@ -28,7 +28,3 @@ openmetadata.{$DOMAIN} {
 geoserver.{$DOMAIN} {
 	reverse_proxy geoserver:8080
 }
-
-docs.{$DOMAIN} {
-	reverse_proxy docs:80
-}

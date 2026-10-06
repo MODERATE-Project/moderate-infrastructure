@@ -704,10 +704,6 @@ services:
       retries: 12
       start_period: 60s
 
-  docs:
-    image: ghcr.io/moderate-project/moderate-docs:sha-95f6e79
-    restart: unless-stopped
-
 volumes:
   caddy_data:
   caddy_config:
