@@ -1,0 +1,14 @@
+# Runs use the default DefaultRunLauncher, as subprocesses of dagster-code.
+# Compute logs and IO manager outputs go to $DAGSTER_HOME/storage, a volume
+# that dagster-code writes and dagster-webserver serves.
+storage:
+  postgres:
+    postgres_db:
+      hostname: postgres
+      username: dagster
+      password:
+        env: POSTGRES_PASSWORD
+      db_name: dagster
+
+run_queue:
+  max_concurrent_runs: 1

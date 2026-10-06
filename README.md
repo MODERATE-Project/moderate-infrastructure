@@ -1,6 +1,6 @@
 # MODERATE Infrastructure
 
-Docker Compose deployment of the MODERATE platform on a single Linux x86_64 host. The stack includes the API, UI, Keycloak, APISIX, OpenMetadata, GeoServer, trust service and their data stores.
+Docker Compose deployment of the MODERATE platform on a single Linux x86_64 host.
 
 > [!NOTE]
 > The Terraform deployment on Google Cloud (GKE) that used to live here is archived in the [`gcp-gke-final` release](https://github.com/MODERATE-Project/moderate-infrastructure/releases/tag/gcp-gke-final).
@@ -62,7 +62,7 @@ task bootstrap
 task smoke
 ```
 
-Startup sets up databases, imports Keycloak settings, runs migrations, and deploys contracts. No manual Keycloak steps are needed. `task bootstrap` waits for all services to be ready, and `task smoke` succeeds silently when everything is healthy.
+Startup sets up databases, imports Keycloak settings, runs migrations, deploys contracts and starts the workflow sensors. No manual Keycloak steps are needed. `task bootstrap` waits for all services to be ready, and `task smoke` succeeds silently when everything is healthy.
 
 Sign in to `https://www.<domain>` as `admin`, using `PLATFORM_ADMIN_PASSWORD` from `.env`. To administer Keycloak, open `https://keycloak.<domain>/admin/` and sign in as `admin` with the separate `KEYCLOAK_ADMIN_PASSWORD`.
 
@@ -73,9 +73,21 @@ After the first start:
 1. Sign in at `https://openmetadata.<domain>` as `admin`, using `PLATFORM_ADMIN_PASSWORD` from `.env`.
 2. Open **Settings → Bots → ingestion-bot** and copy its JWT token.
 3. Add `OPENMETADATA_BOT_TOKEN=<token>` to `.env`.
-4. Run `task up` to apply the token to the API.
+4. Run `task up` to apply the token to the API and workflows.
 
-Until this step is complete, the API runs with its OpenMetadata integration disabled.
+Until this step is complete, the API runs with its OpenMetadata integration disabled and OpenMetadata ingestion workflows fail.
+
+## Workflows
+
+Dagster handles background workflows. `dagster-code` runs jobs one at a time; `dagster-daemon` triggers them as needed. PostgreSQL stores state, and a shared volume holds logs and job outputs. The database sets up automatically on first launch.
+
+Running `task up` starts three sensors: for user identities, object proofs, and matrix-profile requests. These restart if stopped in the UI. OpenMetadata ingestion and demo jobs are manual and need `OPENMETADATA_BOT_TOKEN`.
+
+The Dagster UI is at `127.0.0.1:3000` with no login.
+
+Only `dagster-code` can access `/var/run/docker.sock` (root permissions). The stack expects Docker at this path.
+
+Before shutdown or backup, stop `dagster-daemon`, make sure runs are finished or cancelled in the UI, and no `matrix-profile-*` containers remain. Compose doesn't manage these job containers. If `dagster-code` is restarted mid-run, clean up any leftover containers and stale runs in the UI before resuming.
 
 ## Diagnose a failed deployment
 
@@ -86,7 +98,7 @@ docker compose ps --all
 docker compose logs --tail=100 keycloak
 ```
 
-Replace `keycloak` with any service you want to check. Jobs like `api-migrate`, `openmetadata-migrate`, and `trust-contracts` exit after finishing.
+Replace `keycloak` with any service you want to check. Jobs like `api-migrate`, `openmetadata-migrate`, `trust-contracts`, and `dagster-sensors` exit after finishing. Run `task smoke` before pruning these containers.
 
 ## Operations and configuration
 

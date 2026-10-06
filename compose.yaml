@@ -31,6 +31,7 @@ services:
       KEYCLOAK_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
       OPENMETADATA_DB_PASSWORD: ${OPENMETADATA_DB_PASSWORD}
       API_DB_PASSWORD: ${API_DB_PASSWORD}
+      DAGSTER_DB_PASSWORD: ${DAGSTER_DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./config/postgres/init-databases.sh:/docker-entrypoint-initdb.d/init-databases.sh:ro
@@ -231,6 +232,106 @@ services:
     environment:
       MIGRATIONS_SQLALCHEMY_URL: postgresql://moderateapi:${API_DB_PASSWORD}@postgres:5432/moderateapi
 
+  dagster-code:
+    image: &dagster-image ghcr.io/moderate-project/moderate-workflows:sha-cdade44
+    restart: unless-stopped
+    command: [dagster, api, grpc, -h, 0.0.0.0, -p, "4000", -m, moderate]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      api-migrate:
+        condition: service_completed_successfully
+      apisix:
+        condition: service_healthy
+      caddy:
+        condition: service_started
+    environment:
+      DAGSTER_HOME: /opt/dagster/dagster_home
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      POSTGRES_USERNAME: dagster
+      POSTGRES_PASSWORD: ${DAGSTER_DB_PASSWORD}
+      KEYCLOAK_SERVER_URL: https://keycloak.${DOMAIN}
+      KEYCLOAK_ADMIN_USERNAME: admin
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      OPEN_METADATA_HOST: http://openmetadata
+      OPEN_METADATA_PORT: "8585"
+      OPEN_METADATA_TOKEN: ${OPENMETADATA_BOT_TOKEN:-}
+      API_BASE_URL: https://api.gw.${DOMAIN}
+      API_USERNAME: workflows
+      API_PASSWORD: ${WORKFLOWS_PASSWORD}
+      S3_ENDPOINT_URL: http://seaweedfs:8333
+      S3_REGION: eu-central-1
+      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY}
+      S3_SECRET_ACCESS_KEY: ${S3_SECRET}
+      S3_BUCKET_NAME: platform-api
+      S3_JOB_OUTPUTS_BUCKET_NAME: platform-api
+      RABBIT_URL: amqp://moderate:${RABBITMQ_PASSWORD}@rabbitmq:5672/
+      DOCKER_JOB_NETWORK: moderate
+      MATRIX_PROFILE_JOB_TAG: sha-47e7843
+    volumes:
+      - ./config/dagster/dagster.yaml:/opt/dagster/dagster_home/dagster.yaml:ro
+      - dagster_storage:/opt/dagster/dagster_home/storage
+      # Only the code server starts matrix-profile containers.
+      - /var/run/docker.sock:/var/run/docker.sock
+    healthcheck:
+      test: [CMD, dagster, api, grpc-health-check, -p, "4000"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+      start_period: 60s
+
+  dagster-webserver:
+    image: *dagster-image
+    restart: unless-stopped
+    command: [dagster-webserver, -h, 0.0.0.0, -p, "3000", -w, /opt/dagster/dagster_home/workspace.yaml]
+    depends_on:
+      dagster-code:
+        condition: service_healthy
+    # Private operational UI.
+    ports: ["127.0.0.1:3000:3000"]
+    environment: &dagster-environment
+      DAGSTER_HOME: /opt/dagster/dagster_home
+      POSTGRES_PASSWORD: ${DAGSTER_DB_PASSWORD}
+    volumes: &dagster-volumes
+      - ./config/dagster/dagster.yaml:/opt/dagster/dagster_home/dagster.yaml:ro
+      - ./config/dagster/workspace.yaml:/opt/dagster/dagster_home/workspace.yaml:ro
+      - dagster_storage:/opt/dagster/dagster_home/storage
+    healthcheck:
+      test: [CMD, curl, -fsS, "http://127.0.0.1:3000/server_info"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  dagster-sensors:
+    image: *dagster-image
+    command: [bash, /etc/moderate/start-dagster-sensors.sh]
+    depends_on:
+      dagster-webserver:
+        condition: service_healthy
+    environment: *dagster-environment
+    volumes:
+      - ./config/dagster/dagster.yaml:/opt/dagster/dagster_home/dagster.yaml:ro
+      - ./config/dagster/workspace.yaml:/opt/dagster/dagster_home/workspace.yaml:ro
+      - dagster_storage:/opt/dagster/dagster_home/storage
+      - ./scripts/start-dagster-sensors.sh:/etc/moderate/start-dagster-sensors.sh:ro
+
+  dagster-daemon:
+    image: *dagster-image
+    restart: unless-stopped
+    command: [dagster-daemon, run, -w, /opt/dagster/dagster_home/workspace.yaml]
+    depends_on:
+      dagster-sensors:
+        condition: service_completed_successfully
+    environment: *dagster-environment
+    volumes: *dagster-volumes
+    healthcheck:
+      test: [CMD, dagster-daemon, liveness-check]
+      interval: 30s
+      timeout: 15s
+      retries: 6
+      start_period: 60s
+
   ui:
     image: ghcr.io/moderate-project/moderate-ui:0.3.0
     restart: unless-stopped
@@ -429,6 +530,7 @@ volumes:
   trust_iota_data:
   trust_evm_data:
   geoserver_data:
+  dagster_storage:
 
 networks:
   default:
