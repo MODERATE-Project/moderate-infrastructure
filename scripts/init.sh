@@ -66,17 +66,27 @@ update_environment_file() {
 ensure_jwt_keypair() {
     local private_key=secrets/openmetadata_jwt_private.der
     local public_key=secrets/openmetadata_jwt_public.der
+    local pkcs8_key=secrets/openmetadata_jwt_private_pkcs8.der
 
     # OpenMetadata reads the private key as PKCS#8 DER and the public key as X.509 DER.
     mkdir -p secrets
     if [[ ! -f $private_key ]]; then
-        openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -outform DER -out "$private_key"
+        openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 |
+            openssl pkcs8 -topk8 -nocrypt -outform DER -out "$private_key"
         # A public key left from an older private key would no longer match.
         rm -f "$public_key"
+        rm -f "$pkcs8_key"
+    fi
+    # Older init versions wrote PKCS#1. Wrap the same key without replacing it.
+    if [[ ! -f $pkcs8_key ]]; then
+        openssl pkcs8 -topk8 -nocrypt -inform DER -in "$private_key" -outform DER -out "$pkcs8_key"
     fi
     if [[ ! -f $public_key ]]; then
         openssl pkey -inform DER -in "$private_key" -pubout -outform DER -out "$public_key"
     fi
+    # OpenMetadata runs as UID 1000; secrets/ stays private to the host owner.
+    chmod 0600 "$private_key"
+    chmod 0644 "$public_key" "$pkcs8_key"
 }
 
 main() {
