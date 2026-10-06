@@ -1,0 +1,15 @@
+apiVersion: 1
+
+datasources:
+  - name: DIVA Reporter
+    uid: diva-reporter
+    type: yesoreyeram-infinity-datasource
+    access: proxy
+    url: http://reporter:8000
+    editable: false
+    jsonData:
+      auth_method: none
+      allowedHosts:
+        - http://reporter:8000
+      customHealthCheckEnabled: true
+      customHealthCheckUrl: http://reporter:8000/report/status

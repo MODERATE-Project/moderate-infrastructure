@@ -89,12 +89,42 @@ ensure_jwt_keypair() {
     chmod 0644 "$public_key" "$pkcs8_key"
 }
 
+ensure_nifi_certificate() {
+    local private_key=secrets/nifi.key
+    local certificate=secrets/nifi.crt
+    local key_public certificate_public
+
+    if [[ -f $certificate && ! -f $private_key ]]; then
+        echo "NiFi certificate exists without its private key. Restore the matching key." >&2
+        return 1
+    fi
+    if [[ ! -f $private_key ]]; then
+        openssl genpkey -algorithm RSA -pkeyopt rsa_keygen_bits:2048 -out "$private_key"
+    fi
+    if [[ ! -f $certificate ]]; then
+        openssl req -new -x509 -sha256 -days 3650 -key "$private_key" \
+            -subj /CN=nifi \
+            -addext 'subjectAltName=DNS:nifi,DNS:localhost,IP:127.0.0.1' \
+            -out "$certificate"
+    fi
+    key_public=$(openssl pkey -in "$private_key" -pubout)
+    certificate_public=$(openssl x509 -in "$certificate" -pubkey -noout)
+    if [[ $key_public != "$certificate_public" ]]; then
+        echo "NiFi certificate and private key do not match. Restore the matching pair." >&2
+        return 1
+    fi
+    openssl x509 -in "$certificate" -checkend 0 -noout
+    # NiFi runs as UID 1000; secrets/ remains private on the host.
+    chmod 0644 "$private_key" "$certificate"
+}
+
 main() {
     cd "$(dirname "$0")/.."
     umask 077
 
     update_environment_file
     ensure_jwt_keypair
+    ensure_nifi_certificate
 }
 
 main "$@"

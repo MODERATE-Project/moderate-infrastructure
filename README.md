@@ -36,7 +36,7 @@ cd moderate-infrastructure
 task init
 ```
 
-`task init` creates `.env`, generates passwords and the Fernet key, and writes the OpenMetadata JWT keypair to `secrets/`.
+`task init` creates `.env`, generates passwords and the Fernet key, and writes the OpenMetadata JWT keypair and NiFi HTTPS certificate and key to `secrets/`.
 
 Generate two separate wallet mnemonics by running this command twice:
 
@@ -89,6 +89,24 @@ Only `dagster-code` can access `/var/run/docker.sock` (root permissions). The st
 
 Before shutdown or backup, stop `dagster-daemon`, make sure runs are finished or cancelled in the UI, and no `matrix-profile-*` containers remain. Compose doesn't manage these job containers. If `dagster-code` is restarted mid-run, clean up any leftover containers and stale runs in the UI before resuming.
 
+## Data quality validation
+
+DIVA checks CSV files for data quality. To validate a file, upload it as an asset and start validation from the data quality tab. NiFi processes the file and sends results to Kafka. The reporter saves results in SQLite, and you can view the report on the platform.
+
+On startup, the system sets up Kafka topics and the NiFi flow.
+
+All operations UIs are only accessible on localhost:
+
+| Console  | Host address                  | Login                              |
+| -------- | ----------------------------- | ---------------------------------- |
+| NiFi     | `https://localhost:8443/nifi` | `admin` / `NIFI_PASSWORD`          |
+| Kafka UI | `http://localhost:8080`       | No login                           |
+| Grafana  | `http://localhost:3001`       | `admin` / `GRAFANA_ADMIN_PASSWORD` |
+
+NiFi uses a self-signed certificate in `secrets/nifi.crt` covering `nifi`, `localhost`, and `127.0.0.1`. Trust this certificate in your browser. To renew, stop NiFi, delete `secrets/nifi.crt`, run `task init`, then `task up`, and trust the new certificate.
+
+Grafana auto-configures the **DIVA Reporter** Infinity datasource. To view validation results: create a table panel (Type: **JSON**, Parser: **JSONata**, Source: **URL**, Method: **GET**, URL: `/report?validator=<dataset_id>`). Add columns for `validator`, `rule`, `feature` (strings), and `VALID`, `FAIL` (numbers).
+
 ## Diagnose a failed deployment
 
 `task check` lists empty variables and checks Compose configuration. `task smoke` lists missing, stopped or unhealthy services and failed initialization jobs. Inspect the containers and the logs of a reported service:
@@ -98,7 +116,7 @@ docker compose ps --all
 docker compose logs --tail=100 keycloak
 ```
 
-Replace `keycloak` with any service you want to check. Jobs like `api-migrate`, `openmetadata-migrate`, `trust-contracts`, and `dagster-sensors` exit after finishing. Run `task smoke` before pruning these containers.
+Replace `keycloak` with any service you want to check. Jobs like `api-migrate`, `openmetadata-migrate`, `trust-contracts`, `dagster-sensors`, `kafka-topics`, and `nifi-bootstrap` exit after finishing. Run `task smoke` before pruning these containers.
 
 ## Operations and configuration
 
