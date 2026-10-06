@@ -183,7 +183,7 @@ services:
       start_period: 90s
 
   api:
-    image: &api-image ghcr.io/moderate-project/moderate-api:0.3.0
+    image: &api-image ghcr.io/moderate-project/moderate-api:0.4.0
     restart: unless-stopped
     depends_on:
       postgres:
@@ -219,6 +219,9 @@ services:
       MODERATE_API_DIVA__ENABLED: "true"
       MODERATE_API_DIVA__KAFKA_REST_URL: http://kafka-rest:8082
       MODERATE_API_DIVA__QUALITY_REPORTER_URL: http://reporter:8000
+      MODERATE_API_PLATFORM_APPLICATIONS_FILE: /etc/moderate/platform-applications.yaml
+    volumes:
+      - ./config/api/platform-applications.yaml:/etc/moderate/platform-applications.yaml:ro
     healthcheck:
       test:
         [
@@ -344,7 +347,7 @@ services:
       start_period: 60s
 
   ui:
-    image: ghcr.io/moderate-project/moderate-ui:0.3.0
+    image: ghcr.io/moderate-project/moderate-ui:0.4.0
     restart: unless-stopped
     depends_on:
       api-migrate:
