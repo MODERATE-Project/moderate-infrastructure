@@ -1,6 +1,434 @@
 name: moderate
 
-services: {}
+services:
+  caddy:
+    image: caddy:2.11.7-alpine
+    restart: unless-stopped
+    # Resolve service names without the host's DNS search suffix.
+    dns_search: .
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      DOMAIN: ${DOMAIN}
+    volumes:
+      - ./config/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      default:
+        aliases:
+          - keycloak.${DOMAIN}
+          - api.gw.${DOMAIN}
+          - s3.${DOMAIN}
+
+  postgres:
+    image: postgis/postgis:15-3.5-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      KEYCLOAK_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
+      OPENMETADATA_DB_PASSWORD: ${OPENMETADATA_DB_PASSWORD}
+      API_DB_PASSWORD: ${API_DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./config/postgres/init-databases.sh:/docker-entrypoint-initdb.d/init-databases.sh:ro
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -h 127.0.0.1 -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  rabbitmq:
+    image: rabbitmq:4.3
+    restart: unless-stopped
+    hostname: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: moderate
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: [CMD, rabbitmq-diagnostics, -q, ping]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  seaweedfs:
+    image: chrislusf/seaweedfs:4.48
+    restart: unless-stopped
+    command: server -dir=/data -s3
+    environment:
+      AWS_ACCESS_KEY_ID: ${S3_ACCESS_KEY}
+      AWS_SECRET_ACCESS_KEY: ${S3_SECRET}
+    volumes:
+      - seaweedfs_data:/data
+    healthcheck:
+      test: [CMD, curl, -fsS, "http://127.0.0.1:8333/healthz"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.8.0
+    restart: unless-stopped
+    command: start --import-realm
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      KC_HOSTNAME: https://keycloak.${DOMAIN}
+      KC_PROXY_HEADERS: xforwarded
+      KC_HTTP_ENABLED: "true"
+      KC_HEALTH_ENABLED: "true"
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
+      JAVA_OPTS_KC_HEAP: -Xms256m -Xmx1g
+      DOMAIN: ${DOMAIN}
+      APISIX_CLIENT_SECRET: ${APISIX_CLIENT_SECRET}
+      PLATFORM_ADMIN_PASSWORD: ${PLATFORM_ADMIN_PASSWORD}
+      WORKFLOWS_PASSWORD: ${WORKFLOWS_PASSWORD}
+    volumes:
+      - ./config/keycloak/moderate-realm.json:/opt/keycloak/data/import/moderate-realm.json:ro
+    healthcheck:
+      test:
+        - CMD
+        - bash
+        - -ec
+        - "{ printf 'HEAD /health/ready HTTP/1.0\r\n\r\n' >&0; grep 'HTTP/1.0 200'; } 0<>/dev/tcp/localhost/9000"
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 90s
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.10.2
+    restart: unless-stopped
+    environment:
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      ES_JAVA_OPTS: -Xms1g -Xmx1g
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test:
+        [
+          CMD-SHELL,
+          'curl -fsS localhost:9200/_cluster/health | grep -qE ''"status":"(green|yellow)"''',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
+
+  openmetadata-migrate:
+    image: &openmetadata-image openmetadata/server:1.5.15
+    command: ./bootstrap/openmetadata-ops.sh migrate
+    depends_on:
+      postgres:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+    environment: &openmetadata-environment
+      DB_DRIVER_CLASS: org.postgresql.Driver
+      DB_SCHEME: postgresql
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_USER: openmetadata
+      DB_USER_PASSWORD: ${OPENMETADATA_DB_PASSWORD}
+      OM_DATABASE: openmetadata
+      DB_PARAMS: sslmode=disable
+      ELASTICSEARCH_HOST: elasticsearch
+      ELASTICSEARCH_PORT: "9200"
+      ELASTICSEARCH_SCHEME: http
+      SEARCH_TYPE: elasticsearch
+      AUTHENTICATION_PROVIDER: custom-oidc
+      CUSTOM_OIDC_AUTHENTICATION_PROVIDER_NAME: Keycloak
+      AUTHENTICATION_CLIENT_TYPE: public
+      AUTHENTICATION_CLIENT_ID: openmetadata
+      AUTHENTICATION_PUBLIC_KEYS: "[https://keycloak.${DOMAIN}/realms/moderate/protocol/openid-connect/certs,http://localhost:8585/api/v1/system/config/jwks]"
+      AUTHENTICATION_AUTHORITY: https://keycloak.${DOMAIN}/realms/moderate
+      AUTHENTICATION_CALLBACK_URL: https://openmetadata.${DOMAIN}/callback
+      AUTHORIZER_ADMIN_PRINCIPALS: "[admin]"
+      AUTHORIZER_PRINCIPAL_DOMAIN: ${DOMAIN}
+      RSA_PRIVATE_KEY_FILE_PATH: /etc/openmetadata/jwtkeys/private_key.der
+      RSA_PUBLIC_KEY_FILE_PATH: /etc/openmetadata/jwtkeys/public_key.der
+      FERNET_KEY: ${OPENMETADATA_FERNET_KEY}
+      PIPELINE_SERVICE_CLIENT_ENABLED: "false"
+    volumes: &openmetadata-volumes
+      - ./secrets/openmetadata_jwt_private_pkcs8.der:/etc/openmetadata/jwtkeys/private_key.der:ro
+      - ./secrets/openmetadata_jwt_public.der:/etc/openmetadata/jwtkeys/public_key.der:ro
+
+  openmetadata:
+    image: *openmetadata-image
+    restart: unless-stopped
+    depends_on:
+      openmetadata-migrate:
+        condition: service_completed_successfully
+      keycloak:
+        condition: service_healthy
+    environment: *openmetadata-environment
+    volumes: *openmetadata-volumes
+    healthcheck:
+      test: [CMD, wget, -q, --spider, "http://localhost:8586/healthcheck"]
+      interval: 10s
+      timeout: 5s
+      retries: 18
+      start_period: 90s
+
+  api:
+    image: &api-image ghcr.io/moderate-project/moderate-api:0.3.0
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      seaweedfs:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+      trust:
+        condition: service_healthy
+    environment:
+      MODERATE_API_POSTGRES_URL: postgresql+asyncpg://moderateapi:${API_DB_PASSWORD}@postgres:5432/moderateapi
+      MODERATE_API_OPENID_CONFIG_URL: https://keycloak.${DOMAIN}/realms/moderate/.well-known/openid-configuration
+      MODERATE_API_S3__ENDPOINT_URL: http://seaweedfs:8333
+      MODERATE_API_S3__PUBLIC_ENDPOINT_URL: https://s3.${DOMAIN}
+      MODERATE_API_S3__USE_SSL: "false"
+      MODERATE_API_S3__REGION: eu-central-1
+      MODERATE_API_S3__BUCKET: platform-api
+      MODERATE_API_S3__ACCESS_KEY: ${S3_ACCESS_KEY}
+      MODERATE_API_S3__SECRET_KEY: ${S3_SECRET}
+      MODERATE_API_RABBIT_ROUTER_URL: amqp://moderate:${RABBITMQ_PASSWORD}@rabbitmq:5672/
+      MODERATE_API_TRUST_SERVICE__ENDPOINT_URL: http://trust:8081
+      MODERATE_API_OPEN_METADATA_SERVICE__ENDPOINT_URL: ${OPENMETADATA_BOT_TOKEN:+http://openmetadata:8585}
+      MODERATE_API_OPEN_METADATA_SERVICE__BEARER_TOKEN: ${OPENMETADATA_BOT_TOKEN:-}
+    healthcheck:
+      test:
+        [
+          CMD,
+          /root/venv/bin/python,
+          -c,
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/ping', timeout=5)",
+        ]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+
+  api-migrate:
+    image: *api-image
+    working_dir: /app
+    command: /root/venv/bin/poetry run alembic upgrade head
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      MIGRATIONS_SQLALCHEMY_URL: postgresql://moderateapi:${API_DB_PASSWORD}@postgres:5432/moderateapi
+
+  ui:
+    image: ghcr.io/moderate-project/moderate-ui:0.3.0
+    restart: unless-stopped
+    depends_on:
+      api-migrate:
+        condition: service_completed_successfully
+    environment:
+      MODERATE_API_URL: http://api:8000
+      MODERATE_UI_KEYCLOAK_URL: https://keycloak.${DOMAIN}
+    healthcheck:
+      test: [CMD, wget, -q, -O, /dev/null, "http://127.0.0.1/config.json"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  apisix:
+    image: apache/apisix:3.19.0-debian
+    restart: unless-stopped
+    depends_on:
+      api-migrate:
+        condition: service_completed_successfully
+    environment:
+      APISIX_STAND_ALONE: "true"
+      DOMAIN: ${DOMAIN}
+      APISIX_CLIENT_SECRET: ${APISIX_CLIENT_SECRET}
+    volumes:
+      - ./config/apisix/config.yaml:/usr/local/apisix/conf/config.yaml:ro
+      - ./config/apisix/apisix.yaml:/usr/local/apisix/conf/apisix.yaml:ro
+    healthcheck:
+      test:
+        - CMD
+        - bash
+        - -ec
+        - "{ printf 'GET /status/ready HTTP/1.0\r\n\r\n' >&0; grep 'HTTP/1.1 200'; } 0<>/dev/tcp/127.0.0.1/7085"
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  mongo:
+    image: mongo:7.0.43
+    restart: unless-stopped
+    command: [--wiredTigerCacheSizeGB, "0.5"]
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: [CMD, mongosh, --quiet, --eval, "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  ipfs:
+    image: ipfs/kubo:v0.43.1
+    restart: unless-stopped
+    volumes:
+      - ipfs_data:/data/ipfs
+
+  trust-iota:
+    image: iotaledger/hornet-nest:2.0.1
+    restart: unless-stopped
+    entrypoint: [bash, /etc/moderate/start-iota.sh]
+    stop_grace_period: 5m
+    volumes:
+      - trust_iota_data:/app
+      - ./config/trust-iota/start-iota.sh:/etc/moderate/start-iota.sh:ro
+    healthcheck:
+      test:
+        - CMD
+        - bash
+        - -ec
+        - "exec 3<>/dev/tcp/127.0.0.1/14265; printf 'GET /health HTTP/1.0\\r\\n\\r\\n' >&3; head -n1 <&3 | grep -q ' 200 '; exec 4<>/dev/tcp/127.0.0.1/8091"
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+
+  trust-evm:
+    image: ghcr.io/foundry-rs/foundry:v1.8.4
+    restart: unless-stopped
+    entrypoint: [anvil]
+    command:
+      [
+        --host,
+        0.0.0.0,
+        --chain-id,
+        "1074",
+        --state,
+        /home/foundry/state.json,
+        --state-interval,
+        "1",
+      ]
+    volumes:
+      - trust_evm_data:/home/foundry
+    healthcheck:
+      test: [CMD, cast, chain-id]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  trust-contracts:
+    image: &trust-image ghcr.io/moderate-project/trust-service:sha-15f883c
+    entrypoint: [deploy-contracts]
+    depends_on:
+      trust-evm:
+        condition: service_healthy
+    environment:
+      RPC_PROVIDER: http://trust-evm:8545
+      CHAIN_ID: "1074"
+      ASSET_FACTORY_ADDR: "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
+      # Anvil's public, prefunded account 0 deploys contracts on this local chain.
+      DEPLOYER_PRIVATE_KEY: ac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80
+
+  trust:
+    image: *trust-image
+    restart: unless-stopped
+    depends_on:
+      mongo:
+        condition: service_healthy
+      ipfs:
+        condition: service_healthy
+      trust-iota:
+        condition: service_healthy
+      trust-contracts:
+        condition: service_completed_successfully
+    environment:
+      # Anvil's public, prefunded account 1 signs service transactions.
+      L2_PRIVATE_KEY: 59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d
+      MNEMONIC: ${TRUST_MNEMONIC}
+      KEY_STORAGE_MNEMONIC: ${TRUST_KEY_STORAGE_MNEMONIC}
+      STRONGHOLD_PASSWORD: ${TRUST_STRONGHOLD_PASSWORD}
+      KEY_STORAGE_STRONGHOLD_PASSWORD: ${TRUST_KEY_STORAGE_STRONGHOLD_PASSWORD}
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+      MONGO_ENDPOINT_D: mongo:27017
+      MONGO_DATABASE: moderatetrust
+      NODE_URL: http://trust-iota:14265
+      FAUCET_URL: http://trust-iota:8091/api/enqueue
+      EXPLORER_URL: http://trust-iota:8081/dashboard/explorer
+      RPC_PROVIDER: http://trust-evm:8545
+      CHAIN_ID: "1074"
+      ASSET_FACTORY_ADDR: "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
+      # Keep local-chain wallets separate from wallets created on earlier networks.
+      WALLET_DB_PATH: /var/lib/trust/local/walletdb
+      STRONGHOLD_SNAPSHOT_PATH: /var/lib/trust/local/snapshot.stronghold
+      KEY_STORAGE_STRONGHOLD_SNAPSHOT_PATH: /var/lib/trust/local/key_storage.stronghold
+    volumes:
+      - trust_data:/var/lib/trust
+    healthcheck:
+      test: [CMD, nc, -z, 127.0.0.1, "8081"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
+
+  geoserver:
+    image: ghcr.io/moderate-project/moderate-geoserver:sha-89c77f1
+    restart: unless-stopped
+    environment:
+      GEOSERVER_ADMIN_USER: admin
+      GEOSERVER_ADMIN_PASSWORD: ${GEOSERVER_ADMIN_PASSWORD}
+      GEOSERVER_DATA_DIR: /opt/geoserver/data_dir
+      GEOWEBCACHE_CACHE_DIR: /opt/geoserver/data_dir/gwc
+      STABLE_EXTENSIONS: excel-plugin,charts-plugin
+      TOMCAT_EXTRAS: "false"
+      ROOT_WEBAPP_REDIRECT: "true"
+      HTTP_SCHEME: https
+      HTTP_PROXY_NAME: geoserver.${DOMAIN}
+      HTTP_PROXY_PORT: "443"
+      INITIAL_MEMORY: 512M
+      MAXIMUM_MEMORY: 2G
+    volumes:
+      - geoserver_data:/opt/geoserver/data_dir
+    healthcheck:
+      test: [CMD, curl, -fs, "http://127.0.0.1:8080/geoserver/web/"]
+      interval: 10s
+      timeout: 5s
+      retries: 18
+      start_period: 180s
+
+  docs:
+    image: ghcr.io/moderate-project/moderate-docs:sha-95f6e79
+    restart: unless-stopped
+
+volumes:
+  caddy_data:
+  caddy_config:
+  postgres_data:
+  rabbitmq_data:
+  seaweedfs_data:
+  elasticsearch_data:
+  mongo_data:
+  ipfs_data:
+  trust_data:
+  trust_iota_data:
+  trust_evm_data:
+  geoserver_data:
 
 networks:
   default:

@@ -8,6 +8,8 @@ Docker Compose deployment of the MODERATE Horizon Europe platform on a single Li
 
 - Use a single `compose.yaml` named `moderate` without `profiles` or templating.
 - All services join the `moderate` default network for inter-container connectivity.
+- Give Caddy a network alias for each public hostname called by a container.
+- Long-running services use `restart: unless-stopped`; one-shot jobs have no restart policy.
 - One-shot jobs (like migrations) must be listed in `depends_on` with `condition: service_completed_successfully` in at least one service, or `docker compose up --wait` will fail when the job exits.
 - Store persistent data in named volumes. Put configuration files for each service in `config/<service>/` and mount them read-only.
 - Only use `.env` for variable interpolation; set variables per service under `environment:`. Never use `env_file: .env`.

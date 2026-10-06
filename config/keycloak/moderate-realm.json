@@ -1,0 +1,145 @@
+{
+  "realm": "moderate",
+  "enabled": true,
+  "registrationAllowed": false,
+  "roles": {
+    "client": {
+      "apisix": [
+        {
+          "name": "api_admin"
+        },
+        {
+          "name": "api_basic_access"
+        }
+      ]
+    }
+  },
+  "clients": [
+    {
+      "clientId": "apisix",
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "${APISIX_CLIENT_SECRET}",
+      "serviceAccountsEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "authorizationServicesEnabled": true,
+      "authorizationSettings": {
+        "resources": [
+          {
+            "name": "moderateapi",
+            "type": "urn:apisix:resources:default",
+            "uris": [
+              "/*"
+            ]
+          }
+        ],
+        "policies": [
+          {
+            "name": "api-roles",
+            "type": "role",
+            "logic": "POSITIVE",
+            "config": {
+              "roles": "[{\"id\":\"apisix/api_admin\",\"required\":false},{\"id\":\"apisix/api_basic_access\",\"required\":false}]"
+            }
+          },
+          {
+            "name": "moderateapi-permission",
+            "type": "resource",
+            "config": {
+              "resources": "[\"moderateapi\"]",
+              "applyPolicies": "[\"api-roles\"]"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "clientId": "ui",
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "attributes": {
+        "exclude.issuer.from.auth.response": "true"
+      },
+      "protocolMappers": [
+        {
+          "name": "session-state",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-session-state-mapper",
+          "config": {
+            "access.token.claim": "true",
+            "id.token.claim": "true"
+          }
+        },
+        {
+          "name": "nonce-backwards-compatible",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-nonce-backwards-compatible-mapper",
+          "config": {}
+        }
+      ],
+      "redirectUris": [
+        "https://www.${DOMAIN}/*"
+      ],
+      "webOrigins": [
+        "https://www.${DOMAIN}"
+      ]
+    },
+    {
+      "clientId": "openmetadata",
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": [
+        "https://openmetadata.${DOMAIN}/*"
+      ],
+      "webOrigins": [
+        "https://openmetadata.${DOMAIN}"
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "admin",
+      "enabled": true,
+      "firstName": "Platform",
+      "lastName": "Administrator",
+      "email": "admin@${DOMAIN}",
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${PLATFORM_ADMIN_PASSWORD}",
+          "temporary": false
+        }
+      ],
+      "clientRoles": {
+        "apisix": [
+          "api_admin"
+        ]
+      }
+    },
+    {
+      "username": "workflows",
+      "enabled": true,
+      "firstName": "Platform",
+      "lastName": "Workflows",
+      "email": "workflows@${DOMAIN}",
+      "emailVerified": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "${WORKFLOWS_PASSWORD}",
+          "temporary": false
+        }
+      ],
+      "clientRoles": {
+        "apisix": [
+          "api_admin"
+        ]
+      }
+    }
+  ]
+}

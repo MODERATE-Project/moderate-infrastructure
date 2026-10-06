@@ -1,0 +1,29 @@
+routes:
+  - uri: /docs
+    upstream_id: 1
+  - uri: /openapi.json
+    upstream_id: 1
+  # Public API paths enforce their own access rules.
+  - uri: /*
+    priority: 10
+    vars: [[uri, "~~", "(^|/)public(/|$)"]]
+    upstream_id: 1
+    enable_websocket: true
+  - uri: /*
+    upstream_id: 1
+    enable_websocket: true
+    plugins:
+      authz-keycloak:
+        token_endpoint: https://keycloak.${{DOMAIN}}/realms/moderate/protocol/openid-connect/token
+        client_id: apisix
+        client_secret: ${{APISIX_CLIENT_SECRET}}
+        permissions: [moderateapi]
+        password_grant_token_generation_incoming_uri: /api/token
+      cors:
+        allow_origins: https://www.${{DOMAIN}}
+upstreams:
+  - id: 1
+    type: roundrobin
+    nodes:
+      "api:8000": 1
+#END

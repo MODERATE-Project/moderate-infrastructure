@@ -1,0 +1,34 @@
+{$DOMAIN} {
+	redir https://www.{$DOMAIN}{uri} permanent
+}
+
+www.{$DOMAIN} {
+	reverse_proxy ui:80
+}
+
+keycloak.{$DOMAIN} {
+	reverse_proxy keycloak:8080
+}
+
+api.gw.{$DOMAIN} {
+	reverse_proxy apisix:9080
+}
+
+# Presigned downloads only. Uploads use the internal S3 endpoint.
+s3.{$DOMAIN} {
+	@write not method GET HEAD
+	respond @write 405
+	reverse_proxy seaweedfs:8333
+}
+
+openmetadata.{$DOMAIN} {
+	reverse_proxy openmetadata:8585
+}
+
+geoserver.{$DOMAIN} {
+	reverse_proxy geoserver:8080
+}
+
+docs.{$DOMAIN} {
+	reverse_proxy docs:80
+}
