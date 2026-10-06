@@ -12,3 +12,7 @@ storage:
 
 run_queue:
   max_concurrent_runs: 1
+
+# Workflow debug logs include connection credentials.
+python_logs:
+  python_log_level: INFO
