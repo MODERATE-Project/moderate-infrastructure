@@ -14,6 +14,8 @@ CREATE USER moderateapi WITH PASSWORD :'api_password';
 CREATE DATABASE moderateapi OWNER moderateapi;
 -- Workflows create their own state database using this role.
 CREATE USER dagster WITH CREATEDB PASSWORD :'dagster_password';
+-- OpenMetadata profiling reads tables across the platform databases.
+GRANT pg_read_all_data TO dagster;
 CREATE DATABASE dagster OWNER dagster;
 \connect moderateapi
 CREATE EXTENSION pg_trgm;

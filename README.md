@@ -71,17 +71,20 @@ Sign in to `https://www.<domain>` as `admin`, using `PLATFORM_ADMIN_PASSWORD` fr
 After the first start:
 
 1. Sign in at `https://openmetadata.<domain>` as `admin`, using `PLATFORM_ADMIN_PASSWORD` from `.env`.
-2. Open **Settings → Bots → ingestion-bot** and copy its JWT token.
+2. Open **Settings → Bots → ingestion-bot**. If it has no JWT token, select **Generate New Token** and choose an expiry. Copy the token.
 3. Add `OPENMETADATA_BOT_TOKEN=<token>` to `.env`.
-4. Run `task up` to apply the token to the API and workflows.
+4. Run `task up` to apply the token to the API and workflows and enable PostgreSQL and S3 ingestion.
 
-Until this step is complete, the API runs with its OpenMetadata integration disabled and OpenMetadata ingestion workflows fail.
+Until this step is complete, the API runs with its OpenMetadata integration disabled and both ingestion schedules stay stopped.
+
+> [!TIP]
+> The PostgreSQL workflow runs fail because OpenMetadata rejects binary sample data from its Quartz tables, even though metadata and metrics are still saved.
 
 ## Workflows
 
 Dagster handles background workflows. `dagster-code` runs jobs one at a time; `dagster-daemon` triggers them as needed. PostgreSQL stores state, and a shared volume holds logs and job outputs. The database sets up automatically on first launch.
 
-Running `task up` starts three sensors: for user identities, object proofs, and matrix-profile requests. These restart if stopped in the UI. OpenMetadata ingestion and demo jobs are manual and need `OPENMETADATA_BOT_TOKEN`.
+Running `task up` starts three sensors: for user identities, object proofs, and matrix-profile requests. These restart if stopped in the UI. With `OPENMETADATA_BOT_TOKEN` configured, it also enables PostgreSQL and S3 metadata ingestion and profiling at 00:00 and 12:00 UTC. Demo jobs remain manual.
 
 The Dagster UI is at `127.0.0.1:3000` with no login.
 
