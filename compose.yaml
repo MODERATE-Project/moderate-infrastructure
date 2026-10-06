@@ -1,0 +1,8 @@
+name: moderate
+
+services: {}
+
+networks:
+  default:
+    # Fixed network name allows external containers to join.
+    name: moderate

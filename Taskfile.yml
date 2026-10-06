@@ -1,94 +1,55 @@
 version: "3"
 
-vars:
-  CLI_IMAGE_LOCAL_NAME: moderate-cli
-  CLI_IMAGE_REMOTE_NAME: agmangas/moderate-cli
-  DAGSTER_NAMESPACE: dagster
-  DAGSTER_WEBSERVER_PORT: 8181
-
-dotenv:
-  - .env.local
-
 tasks:
-  get-credentials:
-    desc: Configure kubectl with credentials for the GKE cluster
-    requires:
-      vars:
-        - PROJECT_ID_PRODUCTION
-        - REGION_PRODUCTION
+  init:
+    desc: Create .env and secrets/, or fill in what is missing
     cmds:
-      - >
-        gcloud container clusters get-credentials gke-cluster 
-        --region {{.REGION_PRODUCTION}} 
-        --project {{.PROJECT_ID_PRODUCTION}}
+      - ./scripts/init.sh
 
-  update-dns:
-    desc: Update DNS records to point to the cluster load balancer
+  check:
+    desc: Fail if a variable in .env is empty or the Compose file is invalid
+    preconditions:
+      - sh: test -f .env
+        msg: .env is missing. Run `task init` first.
+    cmds:
+      - silent: true
+        cmd: |
+          empty=$(sed -n 's/^\([A-Za-z0-9_]*\)=$/\1/p' .env)
+          if [ -n "$empty" ]; then
+            printf 'Set these variables in .env:\n%s\n' "$empty" >&2
+            exit 1
+          fi
+      - docker compose config --quiet
+
+  bootstrap:
+    desc: Generate secrets, check the configuration and start the stack
+    cmds:
+      - task: init
+      - task: up
+
+  up:
+    desc: Start the stack and wait until every service is healthy
     deps:
-      - get-credentials
-    requires:
-      vars:
-        - PROJECT_ID_COMMON
-    dir: "{{.ROOT_DIR}}/scripts"
-    env:
-      PROJECT_ID: "{{.PROJECT_ID_COMMON}}"
+      - check
     cmds:
-      - ./update-dns.sh
+      - docker compose up -d --wait
 
-  apply-prod:
-    desc: Apply Terraform configuration for the "production" GCP project
-    dir: "{{.ROOT_DIR}}/gcp_prod"
+  down:
+    desc: Stop and remove the containers. Volumes are kept.
     cmds:
-      - terraform init
-      - terraform apply
-      - task: get-credentials
-      - task: update-dns
+      - docker compose down
 
-  destroy-prod:
-    desc: Destroy Terraform configuration for the "production" GCP project
-    dir: "{{.ROOT_DIR}}/gcp_prod"
+  smoke:
+    desc: Fail if a service is stopped or unhealthy, or a one-shot job failed
     cmds:
-      - terraform destroy
+      - ./scripts/smoke.sh
 
-  push-cli-image:
-    desc: Build and push the MODERATE CLI image to the public registry
-    vars:
-      CLI_IMAGE_REMOTE_TAG:
-        sh: cd {{.ROOT_DIR}}/cli && poetry version --short 2> echo
-    prompt: 🚧 This will push the CLI image to the public registry with tag '{{.CLI_IMAGE_REMOTE_TAG}}'. Are you sure?
+  backup:
+    desc: Stop the stack, save volumes, .env and secrets/ to backups/, restart
     cmds:
-      - docker buildx build --platform=linux/amd64 -t {{.CLI_IMAGE_LOCAL_NAME}} {{.ROOT_DIR}}/cli
-      - docker tag {{.CLI_IMAGE_LOCAL_NAME}} {{.CLI_IMAGE_REMOTE_NAME}}:{{.CLI_IMAGE_REMOTE_TAG}}
-      - docker tag {{.CLI_IMAGE_LOCAL_NAME}} {{.CLI_IMAGE_REMOTE_NAME}}:latest
-      - docker push {{.CLI_IMAGE_REMOTE_NAME}}:{{.CLI_IMAGE_REMOTE_TAG}}
-      - docker push {{.CLI_IMAGE_REMOTE_NAME}}:latest
+      - ./scripts/backup.sh
 
-  port-forward-dagster-ui:
-    desc: Expose the Dagster UI to localhost using kubectl port-forward
-    deps:
-      - get-credentials
-    vars:
-      DAGSTER_WEBSERVER_POD_NAME:
-        sh: kubectl get pods --namespace {{.DAGSTER_NAMESPACE}} -l "component=dagster-webserver" -o jsonpath="{.items[0].metadata.name}"
+  restore:
+    desc: Restore a backup on an empty host (task restore -- backups/<timestamp>)
     cmds:
-      - >
-        while true; do
-        (kubectl port-forward
-        -n {{.DAGSTER_NAMESPACE}}
-        --address=0.0.0.0
-        {{.DAGSTER_WEBSERVER_POD_NAME}}
-        {{.DAGSTER_WEBSERVER_PORT}}:80) || true;
-        done
-
-  load-cloud-sql-dump:
-    desc: Load a SQL dump into a Cloud SQL instance
-    requires:
-      vars:
-        - GCP_PROJECT_ID
-        - CLOUD_SQL_INSTANCE
-        - DB_NAME
-        - DB_USER
-        - DB_PASSWORD
-        - SQL_DUMP_FILE
-    cmds:
-      - ./scripts/load-cloud-sql-dump.sh
+      - ./scripts/restore.sh "{{.CLI_ARGS}}"
