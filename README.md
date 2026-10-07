@@ -1,9 +1,9 @@
+> [!IMPORTANT]
+> The MODERATE project has officially concluded. During its development, the infrastructure was hosted on Google Kubernetes Engine (GKE). To ensure reproducibility and support for future demonstrations or updates, we have migrated from GKE to a single-host, Docker Compose-based deployment. Please note: this setup is intended for maintenance and demo purposes, it is not scalable or suitable for production but can be deployed quickly. The previous Terraform deployment for GKE is archived in the [`gcp-gke-final` release](https://github.com/MODERATE-Project/moderate-infrastructure/releases/tag/gcp-gke-final).
+
 # MODERATE Infrastructure
 
 Docker Compose deployment of the MODERATE platform on a single Linux x86_64 host.
-
-> [!NOTE]
-> The Terraform deployment on Google Cloud (GKE) that used to live here is archived in the [`gcp-gke-final` release](https://github.com/MODERATE-Project/moderate-infrastructure/releases/tag/gcp-gke-final).
 
 ## Requirements
 
